@@ -1,0 +1,5 @@
+useDynLib(phylolm)
+
+exportPattern("^[[:alpha:]]+")
+
+import(ape)

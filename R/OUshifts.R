@@ -4,8 +4,7 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 	if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
 
-	if (check.pruningwise)
-		phy = reorder(phy, "pruningwise")
+	if (check.pruningwise) phy = reorder(phy, "pruningwise")
 	method = match.arg(method)
 	options(warn = -1)
 	n <- length(phy$tip.label)

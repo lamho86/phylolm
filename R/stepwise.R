@@ -2,7 +2,7 @@
 ### Stepwise selection for phylolm using AIC
 ################################################
 
-phylostep <- function(formula, data=list(), phy, 
+phylostep <- function(formula, starting.formula = NULL, data=list(), phy, 
                     model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
                     direction = c("both", "backward", "forward"), trace = TRUE,
                     lower.bound=NULL, upper.bound=NULL, starting.value=NULL, ...) 
@@ -13,6 +13,9 @@ phylostep <- function(formula, data=list(), phy,
   plm.full = phylolm(formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
   response = plm.full$formula[[2]] # name of the response
   covariates = names(plm.full$coefficients) # name of the covariates
+  if (length(data) == 0) {
+    data = as.data.frame(plm.full$X)
+  } # check if there is no data structure
   
   if (is.null(covariates)) stop("Covariates has no name.")
   p = length(covariates)
@@ -35,12 +38,22 @@ phylostep <- function(formula, data=list(), phy,
   
   ## plm.current is a binary vector of length p
   ## where 0 at i-th position means excluding i-th covariate
+  
   if (direction == "forward") {
     plm.current = c(1,rep(0,p-1)) # only intercept
     fit.current = fit(plm.current)
   } else {
     plm.current = rep(1,p) # all covariates
     fit.current = plm.full
+  }
+  
+  if (!is.null(starting.formula)) {
+    fit.current = phylolm(starting.formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
+    covariates.current = names(fit.current$coefficients)
+    plm.current = c(1,rep(0,p-1))
+    if (length(covariates.current)>1)
+      for (i in 2:length(covariates.current)) 
+        plm.current[which(covariates==covariates.current[i])] = 1  
   }
 
 if (trace) {

@@ -8,12 +8,12 @@
 \tabular{ll}{
 Package: \tab phylolm\cr
 Type: \tab Package\cr
-Version: \tab 2.2\cr
-Date: \tab 2014-11-16\cr
+Version: \tab 2.3\cr
+Date: \tab 2015-08-31\cr
 License: \tab GPL (>= 2)\cr
 }
 }
-\author{Lam Si Tung Ho, Cécile Ané, Robert Lachlan, Kelsey Tarpinia
+\author{Lam Si Tung Ho, C?cile An?, Robert Lachlan, Kelsey Tarpinia
 
 Maintainer: Lam Si Tung Ho <lamho86@gmail.com>
 }

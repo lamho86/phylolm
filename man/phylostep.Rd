@@ -5,15 +5,17 @@
 \title{Stepwise model selection for Phylogenetic Linear Model}
 \description{Performs stepwise model selection for Phylogenetic Linear Model.}
 \usage{
-phylostep(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
-       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
+phylostep(formula, starting.formula = NULL, data = list(), 
+       phy, model = c("BM", "OUrandomRoot","OUfixedRoot", 
+       "lambda", "kappa", "delta", "EB", "trend"),
        direction = c("both", "backward", "forward"), trace = TRUE,
        lower.bound = NULL, upper.bound = NULL, 
        starting.value = NULL, ...)
 }
 
 \arguments{
-  \item{formula}{a model formula.}
+  \item{formula}{formula of the full model.}
+  \item{starting.formula}{formula of the starting model.}
   \item{data}{a data frame containing variables in the model. If not
   found in \code{data}, the variables are taken from current environment.}
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}

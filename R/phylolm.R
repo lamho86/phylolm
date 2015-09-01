@@ -201,6 +201,7 @@ phylolm <- function(formula, data=list(), phy,
   results$residuals = y - results$fitted.values
   results$mean.tip.height = Tmax
   results$y = y
+  results$X = X
   results$n = n
   results$d = d
   results$formula = formula

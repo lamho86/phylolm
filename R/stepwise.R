@@ -26,7 +26,7 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     on = which(plm==1)
     str = paste(response," ~ 1",sep="")
     for (i in 1:length(on))
-      if (i>1) str = paste(str," + ",covariates[i],sep="")
+      if (i>1) str = paste(str," + ",covariates[on[i]],sep="")
     return(str)
   }
   
@@ -50,10 +50,10 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
   if (!is.null(starting.formula)) {
     fit.current = phylolm(starting.formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
     covariates.current = names(fit.current$coefficients)
-    plm.current = c(1,rep(0,p-1))
-    if (length(covariates.current)>1)
-      for (i in 2:length(covariates.current)) 
-        plm.current[which(covariates==covariates.current[i])] = 1  
+    plm.current = rep(0,p)
+    position = match(covariates.current,covariates)
+    if (any(is.na(position))) stop("The starting model is not a submodel of the full model.")
+    plm.current[position] = 1
   }
 
 if (trace) {

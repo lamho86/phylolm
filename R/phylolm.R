@@ -293,17 +293,20 @@ logLik.phylolm <- function(object, ...){
   class(res) = "logLik.phylolm"
   res
 }
-################################################
 print.logLik.phylolm <- function (x, ...) {
   cat("'log Lik.' ",x$logLik," (df=",x$df,")\n", sep = "")
 }
-################################################
-AIC.logLik.phylolm <- function(object, ..., k=2) {
+AIC.logLik.phylolm <- function(object, k=2, ...) {
   return(k*object$df - 2*object$logLik)
 }
-################################################
-AIC.phylolm <- function(object, ..., k=2) {
+AIC.phylolm <- function(object, k=2, ...) {
   return(AIC(logLik(object),k))
+}
+extractAIC.phylolm <- function(fit, scale, k = 2, ...) {
+    c(fit$p, - 2*fit$logLik + k * fit$p)
+}
+nobs.phylolm <- function(object, ...){
+  return(object$n)
 }
 ################################################
 predict.phylolm <- function(object, newdata=NULL, ...){

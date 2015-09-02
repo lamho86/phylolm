@@ -3,14 +3,16 @@
 \alias{phylostep}
 
 \title{Stepwise model selection for Phylogenetic Linear Model}
-\description{Performs stepwise model selection for Phylogenetic Linear Model.}
+\description{Performs stepwise model selection for phylogenetic linear
+  models, using the criterion -2*log-likelihood + k*npar, where npar is
+  the number of estimated parameters and k=2 for the usual AIC.}
 \usage{
 phylostep(formula, starting.formula = NULL, data = list(), 
        phy, model = c("BM", "OUrandomRoot","OUfixedRoot", 
        "lambda", "kappa", "delta", "EB", "trend"),
-       direction = c("both", "backward", "forward"), trace = TRUE,
+       direction = c("both", "backward", "forward"), trace = 2,
        lower.bound = NULL, upper.bound = NULL, 
-       starting.value = NULL, ...)
+       starting.value = NULL, k=2, ...)
 }
 
 \arguments{
@@ -19,56 +21,32 @@ phylostep(formula, starting.formula = NULL, data = list(),
   \item{data}{a data frame containing variables in the model. If not
   found in \code{data}, the variables are taken from current environment.}
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}
-  \item{model}{a model for the covariance (see Details).}
+  \item{model}{a model for the phylogenetic covariance of residuals.}
   \item{direction}{direction for stepwise search, can be \code{both}, \code{forward}, and \code{backward}.}
-  \item{trace}{if \code{TRUE}, the information of each searching step is printed}
+  \item{trace}{if positive, information on each searching step is
+    printed. Larger values may give more detailed information.}
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
-  \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
+  \item{starting.value}{optional starting value for the optimization of
+    the phylogenetic model parameter.}
+  \item{k}{optional weight for the penalty.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
-\details{This function uses an algorithm that is linear in the number of
-  tips in the tree to calculate the likelihood. Possible phylogenetic
-  models for the error term are the Brownian motion model (\code{BM}), the
-  Ornstein-Uhlenbeck model with an ancestral state to be estimated at
-  the root (\code{OUfixedRoot}), the Ornstein-Uhlenbeck model with the
-  ancestral state at the root having the stationary distribution
-  (\code{OUrandomRoot}), Pagel's \eqn{\lambda}{lambda} model
-  (\code{lambda}), Pagel's \eqn{\kappa}{kappa} model (\code{kappa}),
-  Pagel's \eqn{\delta}{delta} model (\code{delta}), the early burst
-  model (\code{EB}), and the Brownian motion model with a trend
-  (\code{trend}).
+\details{The default \eqn{k=2} corresponds to the usual AIC penalty.
+  Use \eqn{k=\log(n)}{k=log(n)} for the usual BIC, although it is
+  unclear how BIC should be defined for phylogenetic regression.
+  
+  See \code{\link{phylolm}} for details on the possible
+  phylogenetic models for the error term, for default bounds on the
+  phylogenetic signal parameters, or for matching tip labels between the
+  tree and the data.
 
-  By default, the bounds on the phylogenetic parameters are
-  \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha}, 
-  \eqn{[10^{-7},1]} for \eqn{\lambda}{lambda},
-  \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
-  \eqn{[10^{-5},3]} for \eqn{\delta}{delta} and
-  \eqn{[-3/T,0]} for \code{rate}, where \eqn{T} is the mean root-to-tip distance.
 }
 \value{
    A phylolm object correponding to the best model is returned.
 }
 
 \author{Lam Si Tung Ho}
-\note{
-The tip labels in the tree are matched to the data names (row names in
-the data frame). If no data frame is provided through the argument data,
-taxon labels in the tree are matched to taxon labels in the response
-variable based on the row names of the response vector, and the taxa are
-assumed to come in the same order for all variables in the model.
-
-For the delta model, the tree is rescaled back to its original height
-after each node's distance from the root is raised to the power
-delta. This is to provide a stable estimate of the variance parameter
-\eqn{\sigma^2}{sigma^2}. For non-ultrametric trees, the tree is rescaled
-to maintain the longest distance from the root to its original value.
-
-The trend model can only be used with non-ultrametric trees. For this
-model, one predictor variable is added to the model whose values are the
-distances from the root to every tip of the tree. The estimate of the
-coefficent for this variable forms the trend value.
-}
 \seealso{
 \code{\link{phylolm}}.
 }

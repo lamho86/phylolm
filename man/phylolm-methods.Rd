@@ -9,6 +9,8 @@
 \alias{print.logLik.phylolm}
 \alias{AIC.phylolm}
 \alias{AIC.logLik.phylolm}
+\alias{extractAIC.phylolm}
+\alias{nobs.phylolm}
 \alias{plot.phylolm}
 
 \title{Methods for class 'phylolm'.}
@@ -20,7 +22,7 @@
 \method{predict}{phylolm}(object, newdata = NULL, ...)
 \method{vcov}{phylolm}(object, ...)
 \method{logLik}{phylolm}(object, ...)
-\method{AIC}{phylolm}(object, ..., k=2)
+\method{AIC}{phylolm}(object, k=2, ...)
 \method{plot}{phylolm}(x, ...)
 }
 

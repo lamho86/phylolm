@@ -4,8 +4,9 @@
 
 phylostep <- function(formula, starting.formula = NULL, data=list(), phy, 
                     model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
-                    direction = c("both", "backward", "forward"), trace = TRUE,
-                    lower.bound=NULL, upper.bound=NULL, starting.value=NULL, ...) 
+                    direction = c("both", "backward", "forward"), trace = 2,
+                    lower.bound=NULL, upper.bound=NULL, starting.value=NULL,
+                      k=2, ...) 
 {
   ## initialize  
   model = match.arg(model)	
@@ -56,13 +57,13 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     plm.current[position] = 1
   }
 
-if (trace) {
-  cat("----------\n")
-  cat(paste("Starting model: ",create.formula(plm.current),"\n",sep=""))
-  cat(paste("Direction: ",direction,"\n",sep=""))
-  cat(paste("AIC: ",AIC(fit.current),"\n",sep=""))
-  cat("----------\n")
-}
+  if (trace>0) {
+    cat("----------\n")
+    cat(paste("Starting model: ",create.formula(plm.current),"\n",sep=""))
+    cat(paste("Direction: ",direction,"\n",sep=""))
+    cat(paste("AIC(k=",k,"): ",AIC(fit.current,k),"\n",sep=""))
+    cat("----------\n")
+  }
     
   flag = 0 # flag of termination
   count = 1
@@ -73,32 +74,42 @@ if (trace) {
     for (i in 2:p) {
       
       plm.propose = plm.current
-      if ((plm.current[i]==1)&&(direction %in% c("both", "backward"))) 
+      do.update = FALSE
+      if ((plm.current[i]==1)&&(direction %in% c("both", "backward"))) {
         plm.propose[i] = 0  # remove i-th covariate
-      if ((plm.current[i]==0)&&(direction %in% c("both", "forward"))) 
+        do.update = TRUE
+      }
+      if ((plm.current[i]==0)&&(direction %in% c("both", "forward"))) {
         plm.propose[i] = 1 # add i-th covariate
+        do.update = TRUE
+      }
         
       ## check if proposed model is better
-      fit.propose = fit(plm.propose)
-      if (AIC(fit.propose) < AIC(fit.best)) {
-        plm.best = plm.propose
-        fit.best = fit.propose
-        flag = 0
+      if (do.update){
+        fit.propose = fit(plm.propose)
+        if (trace>1) {
+          cat(paste0("\tProposed: ",create.formula(plm.propose),"\n"))
+          cat(paste0("\tAIC(k=",k,"): ",AIC(fit.propose,k),"\n"))
+        }
+        if (AIC(fit.propose,k) < AIC(fit.best,k)) {
+          plm.best = plm.propose
+          fit.best = fit.propose
+          flag = 0
         }
       }
+    }
     
     ## Set current model as the best model
     plm.current = plm.best
     fit.current = fit.best
     
-    if (trace) {
-      cat("Step ",count,"\n",sep="")
+    if (trace>0) {
+      cat("----------\nStep ",count,"\n",sep="")
       cat(paste("Current model: ",create.formula(plm.current),"\n",sep=""))
-      cat(paste("AIC: ",AIC(fit.current),"\n",sep=""))
-      cat("---\n")
+      cat(paste("AIC(k=",k,"): ",AIC(fit.current,k),"\n",sep=""))
     }
     count = count + 1
     }
-  if (trace) cat("END\n")
+  if (trace>0) cat("END\n")
   return(fit.current)
 }  

@@ -1,6 +1,6 @@
 phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logistic_IG10","poisson_GEE"),
-                     btol = 10, log.alpha.bound = 4,
-                     start.beta=NULL, start.alpha=NULL)
+                     btol = 10, log.alpha.bound = 4, start.beta=NULL, start.alpha=NULL, 
+                     boot = 0, full.matrix = TRUE)
 {
   ### initialize	
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")	
@@ -466,7 +466,70 @@ You can increase this bound by increasing 'btol'.")
   results$formula = formula
   results$call = match.call()
   results$method = method
-  results$X=X
+  results$X = X
+  results$boot = boot
+  
+  if ((boot>0)&&(method %in% c("logistic_MPLE","logistic_IG10"))) {
+    
+    # Turn off warnings
+    options(warn=-1)
+    
+    # simulate all bootstrap data sets
+    bootobject <- rbinTrait(n = boot, phy = phy, beta = results$coefficients,
+                            alpha = results$alpha, X = X, model = "LogReg")
+    responsecolumn <- attr(attr(mf, "terms"), "response")
+    
+    # analyze these bootstrapped data
+    ncoeff = length(results$coefficients)
+    bootmatrix <- matrix(NA, boot, ncoeff + 1)
+    colnames(bootmatrix) <- c(names(results$coefficients), "alpha")
+    
+    for (i in 1:boot){
+      y = bootobject[,i]
+      if (method == "logistic_IG10") {
+        bootfit <- try(plogregfunct(startB,startlL), silent=TRUE)
+        if (!inherits(bootfit, 'try-error')){
+          bootmatrix[i, 1:ncoeff] <- bootfit$B
+          bootmatrix[i, ncoeff + 1] <- 1/exp(bootfit$lL)
+        }
+      }
+      
+      if (method == "logistic_MPLE") {
+        bootfit <- try(optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12)), 
+                       silent=TRUE)
+        if (!inherits(bootfit, 'try-error')){
+          bootmatrix[i, 1:ncoeff] <- bootfit$par[1:dk]
+          bootmatrix[i, ncoeff + 1] <- 1/exp(bootfit$par[dk+1])
+        }
+      }
+    }
+    
+    # summarize bootstrap estimates
+    ind.na <- which(is.na(bootmatrix[,1]))
+    # indices of replicates that failed: phyloglm had an error
+    if (length(ind.na)>0) {
+      bootmatrix <- bootmatrix[-ind.na,]
+      numOnes <- range(apply(bootobject[,ind.na],2,sum))
+    }
+    bootmean <- apply(bootmatrix, 2, mean)
+    bootsd <- apply(bootmatrix, 2, sd)
+    bootconfint95 <- apply(bootmatrix, 2, quantile, probs = c(.025, .975))
+    
+    bootmeanAlog <- mean(log(bootmatrix[, ncoeff + 1]))
+    bootsdAlog <- sd(log(bootmatrix[, ncoeff + 1]))	
+    
+    results$bootmean = bootmean
+    results$bootsd = bootsd
+    results$bootconfint95 = bootconfint95
+    results$bootmeanAlog = bootmeanAlog
+    results$bootsdAlog = bootsdAlog
+    results$bootnumFailed = length(ind.na)
+    if (full.matrix) results$bootstrap = bootmatrix
+    
+    ### Turn on warnings
+    options(warn=0)
+  }
+  
   class(results) = "phyloglm"
   results
 }
@@ -493,8 +556,15 @@ print.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), ...){
 summary.phyloglm <- function(object, ...) {
   se <- object$sd
   zval <- coef(object) / se
-  TAB <- cbind(Estimate = coef(object), StdErr = se, z.value = zval,
+  if (object$boot == 0) 
+    TAB <- cbind(Estimate = coef(object), StdErr = se, z.value = zval,
                p.value = 2*pnorm(-abs(zval)))
+  else 
+    TAB <- cbind(Estimate = coef(object), StdErr = se, z.value = zval,
+                 p.value = 2*pnorm(-abs(zval)), 
+#                  bootMean = object$bootmean[1:object$d], bootStdErr = object$bootsd[1:object$d],
+                 lowerbootCI = object$bootconfint95[1,1:object$d], 
+                 upperbootCI = object$bootconfint95[2,1:object$d])
   if (object$method %in% c("logistic_MPLE","logistic_IG10")) {
     res <- list(call=object$call,
                 coefficients=TAB,
@@ -503,8 +573,15 @@ summary.phyloglm <- function(object, ...) {
                 aic=object$aic,   	
                 logLik=object$logLik,
                 penlogLik=object$penlogLik,
+                d = object$d,
                 method=object$method,
-                mean.tip.height=object$mean.tip.height)  
+                mean.tip.height=object$mean.tip.height,
+                boot = object$boot)  
+    if (object$boot>0) {
+      res$bootmean = object$bootmean
+      res$bootsd = object$bootsd
+      res$bootconfint95 = object$bootconfint95
+    }
   }
   
   if (object$method == "poisson_GEE") {
@@ -530,7 +607,12 @@ print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), 
   cat("\nMethod:",x$method)
   if (x$method %in% c("logistic_MPLE","logistic_IG10")) cat("\nMean tip height:",x$mean.tip.height)
   cat("\nParameter estimate(s):\n")
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) cat("alpha:",x$alpha,"\n")
+  if (x$method %in% c("logistic_MPLE","logistic_IG10")) {
+    cat("alpha:",x$alpha,"\n")
+    if (x$boot > 0) {
+      cat("Bootstrap CI: (",x$bootconfint95[1,x$d+1],",",x$bootconfint95[2,x$d+1],")\n")
+    }
+  }
   if (x$method == "poisson_GEE") cat("scale:",x$scale,"\n")
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, P.values=FALSE, has.Pvalue=FALSE)

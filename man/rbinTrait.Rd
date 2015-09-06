@@ -7,11 +7,11 @@
 rbinTrait(n=1, phy, beta, alpha, X = NULL, model = c("LogReg"))
 }
 \arguments{
-  \item{n}{number of independent replicates}
+  \item{n}{number of independent replicates.}
   \item{phy}{a phylogenetic tree of type phylo with brach lengths.}
   \item{beta}{a vector of coefficients for the logistic regression model.}
   \item{alpha}{the phylogenetic correlation parameter.}
-  \item{X}{a design matrix with one row for each tip in the phylogenetic tree}
+  \item{X}{a design matrix with one row for each tip in the phylogenetic tree.}
   \item{model}{Currently, only phylogenetic logistic regression is implemented.}
 }
 
@@ -26,7 +26,7 @@ rbinTrait(n=1, phy, beta, alpha, X = NULL, model = c("LogReg"))
   If a design matrix \code{X} is provided, the length of \code{beta} should be
   equal to the number of columns in \code{X}.}
 
-\author{Lam Si Tung Ho and C. Ané }
+\author{Lam Si Tung Ho and C. An? }
 
 \references{
 Ives, A. R. and T. Garland, Jr. 2010. "Phylogenetic logistic regression

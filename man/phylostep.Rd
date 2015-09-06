@@ -46,7 +46,7 @@ phylostep(formula, starting.formula = NULL, data = list(),
    A phylolm object correponding to the best model is returned.
 }
 
-\author{Lam Si Tung Ho}
+\author{Lam Si Tung Ho and Cecile Ane}
 \seealso{
 \code{\link{phylolm}}.
 }

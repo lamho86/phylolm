@@ -6,21 +6,22 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
                     model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
                     direction = c("both", "backward", "forward"), trace = 2,
                     lower.bound=NULL, upper.bound=NULL, starting.value=NULL,
-                      k=2, ...) 
+                    k=2, ...) 
 {
   ## initialize  
   model = match.arg(model)	
   direction = match.arg(direction)  
-  plm.full = phylolm(formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
-  response = plm.full$formula[[2]] # name of the response
-  covariates = names(plm.full$coefficients) # name of the covariates
+  fit.full = phylolm(formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
+  response = fit.full$formula[[2]] # name of the response
+  covariates = names(fit.full$coefficients) # name of the covariates
   if (length(data) == 0) {
-    data = as.data.frame(plm.full$X)
+    data = as.data.frame(fit.full$X)
   } # check if there is no data structure
   
   if (is.null(covariates)) stop("Covariates has no name.")
   p = length(covariates)
   if (p==1) stop("Your full model only has intercept. Model selection is not needed.")
+  plm.full = rep(1,p)
 
   ## create a formula from current model
   create.formula <- function(plm) {
@@ -44,8 +45,8 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     plm.current = c(1,rep(0,p-1)) # only intercept
     fit.current = fit(plm.current)
   } else {
-    plm.current = rep(1,p) # all covariates
-    fit.current = plm.full
+    plm.current = plm.full # all covariates
+    fit.current = fit.full
   }
   
   if (!is.null(starting.formula)) {
@@ -62,7 +63,7 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     cat(paste("Starting model: ",create.formula(plm.current),"\n",sep=""))
     cat(paste("Direction: ",direction,"\n",sep=""))
     cat(paste("AIC(k=",k,"): ",AIC(fit.current,k),"\n",sep=""))
-    cat("----------\n")
+#     cat("----------\n")
   }
     
   flag = 0 # flag of termination
@@ -71,15 +72,23 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     flag = 1
     plm.best = plm.current
     fit.best = fit.current
+    
+    ### to preserve hierarchy priciple
+    terms.add = add.scope(formula(create.formula(plm.current)), 
+                                  formula(create.formula(plm.full)))
+    terms.drop = drop.scope(formula(create.formula(plm.current)))
+    
     for (i in 2:p) {
       
       plm.propose = plm.current
       do.update = FALSE
-      if ((plm.current[i]==1)&&(direction %in% c("both", "backward"))) {
+      if ((plm.current[i]==1)&&(direction %in% c("both", "backward"))
+          &&(covariates[i] %in% terms.drop)) {
         plm.propose[i] = 0  # remove i-th covariate
         do.update = TRUE
       }
-      if ((plm.current[i]==0)&&(direction %in% c("both", "forward"))) {
+      if ((plm.current[i]==0)&&(direction %in% c("both", "forward"))
+          &&(covariates[i] %in% terms.add)) {
         plm.propose[i] = 1 # add i-th covariate
         do.update = TRUE
       }
@@ -110,6 +119,6 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     }
     count = count + 1
     }
-  if (trace>0) cat("END\n")
+  if (trace>0) cat("---END\n")
   return(fit.current)
 }  

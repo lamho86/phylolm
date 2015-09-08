@@ -576,11 +576,13 @@ summary.phyloglm <- function(object, ...) {
                 d = object$d,
                 method=object$method,
                 mean.tip.height=object$mean.tip.height,
-                boot = object$boot)  
-    if (object$boot>0) {
+                bootNrep = ifelse(object$boot>0, object$boot - object$bootnumFailed, 0)
+                )
+    if (res$bootNrep>0) {
       res$bootmean = object$bootmean
       res$bootsd = object$bootsd
       res$bootconfint95 = object$bootconfint95
+      res$bootmeanAlog <- object$bootmeanAlog
     }
   }
   
@@ -609,8 +611,10 @@ print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), 
   cat("\nParameter estimate(s):\n")
   if (x$method %in% c("logistic_MPLE","logistic_IG10")) {
     cat("alpha:",x$alpha,"\n")
-    if (x$boot > 0) {
-      cat("Bootstrap CI: (",x$bootconfint95[1,x$d+1],",",x$bootconfint95[2,x$d+1],")\n")
+    if (x$bootNrep > 0) {
+      cat("      bootstrap mean: ",exp(x$bootmeanAlog)," (on log scale, then back transformed)","\n",sep="")
+      cat("      so possible ",ifelse(x$bootmeanAlog>log(x$alpha),"upward","downward")," bias.","\n", sep="")
+      cat("      bootstrap 95% CI: (",x$bootconfint95[1,x$d+1],",",x$bootconfint95[2,x$d+1],")\n", sep="")
     }
   }
   if (x$method == "poisson_GEE") cat("scale:",x$scale,"\n")
@@ -622,6 +626,8 @@ print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), 
   if (x$method == "poisson_GEE") 
     cat("\nNote: Wald-type p-values for coefficients, conditional on scale=",
       x$scale,"\n",sep="")
+  if (x$bootNrep > 0)
+    cat("      Parametric bootstrap results based on",x$bootNrep,"fitted replicates\n")
   cat("\n")
 }
 ################################################
@@ -646,15 +652,13 @@ logLik.phyloglm <- function(object, ...){
   class(res) = "logLik.phylolm"
   res
 }
-################################################
 print.logLik.phyloglm <- function (x, ...) {
   cat("'log Lik.' ",x$logLik," (df=",x$df,")\n", sep = "")
 }
-################################################
-AIC.logLik.phyloglm <- function(object, ..., k=2) {
+AIC.logLik.phyloglm <- function(object, k=2, ...) {
   return(k*object$df - 2*object$logLik)
 }
-################################################
-AIC.phyloglm <- function(object, ..., k=2) {
-  return(AIC(logLik(object),k=2))
+AIC.phyloglm <- function(object, k=2, ...) {
+  return(AIC(logLik(object),k))
 }
+################################################

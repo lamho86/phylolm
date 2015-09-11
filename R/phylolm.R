@@ -302,7 +302,7 @@ AIC.logLik.phylolm <- function(object, k=2, ...) {
 AIC.phylolm <- function(object, k=2, ...) {
   return(AIC(logLik(object),k))
 }
-extractAIC.phylolm <- function(fit, scale, k = 2, ...) {
+extractAIC.phylolm <- function(fit, scale, k=2, ...) {
     c(fit$p, - 2*fit$logLik + k * fit$p)
 }
 nobs.phylolm <- function(object, ...){

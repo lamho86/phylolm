@@ -18,7 +18,7 @@
 \method{residuals}{phyloglm}(object,type = c("response"), ...)
 \method{vcov}{phyloglm}(object, ...)
 \method{logLik}{phyloglm}(object, ...)
-\method{AIC}{phyloglm}(object, ..., k=2)
+\method{AIC}{phyloglm}(object, k=2, ...)
 \method{plot}{phyloglm}(x, ...)
 }
 

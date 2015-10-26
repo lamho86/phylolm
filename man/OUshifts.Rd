@@ -42,7 +42,7 @@ OUshifts(y, phy, method = c("mbic", "aic", "bic", "saic", "sbic"),
 }
 
 \references{
-Ho, L. S. T. and Ané, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. In press.
+Ho, L. S. T. and An?, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. In press.
 
 Ingram, T. and Mahler, D.L. 2013. "SURFACE: detecting convergent
   evolution from comparative data by fitting Ornstein-Uhlenbeck models
@@ -64,7 +64,7 @@ Zhang, N.R. and Siegmund, D.O. 2007. "A modified Bayes information
 data(flowerSize)
 data(flowerTree)
 result <- OUshifts(flowerSize$log_transformed_size, flowerTree, 
-                   method = "mbic", nmax = 10)
+                   method = "mbic", nmax = 1)
 plot.OUshifts(result,show.tip.label=FALSE)
 }
 

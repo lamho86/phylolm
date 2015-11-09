@@ -63,7 +63,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
    \item{model}{the phylogenetic model for the covariance}
 }
 \references{
-Ho, L. S. T. and An?, C. 2014.  "A linear-time algorithm for Gaussian and non-Gaussian trait evolution models". Systematic Biology \bold{63}(3):397-408.
+Ho, L. S. T. and Ane, C. 2014.  "A linear-time algorithm for Gaussian and non-Gaussian trait evolution models". Systematic Biology \bold{63}(3):397-408.
 
 Butler, M. A. and King, A. A. 2004. "Phylogenetic comparative analysis:
 A modeling approach for adaptive evolution". The American Naturalist \bold{164}:683-695.
@@ -74,7 +74,7 @@ of adaptation". Evolution \bold{51}:1341-1351.
 Harmon, L. J. et al. 2010. "Early bursts of body size and shape
 evolution are rare in comparative data". Evolution \bold{64}:2385-2396.
 
-Ho, L. S. T. and An?, C. 2013. "Asymptotic theory with hierarchical
+Ho, L. S. T. and Ane, C. 2013. "Asymptotic theory with hierarchical
 autocorrelation: Ornstein-Uhlenbeck tree models". The Annals of Statistics \bold{41}(2):957-981.
 
 Pagel, M. 1997. "Inferring evolutionary processes from

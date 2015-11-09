@@ -3,8 +3,10 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
       	stop("object \"phy\" is not of class \"phylo\".")
 	if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
-
+  
+  origphy = phy
 	if (check.pruningwise) phy = reorder(phy, "pruningwise")
+  
 	method = match.arg(method)
 	options(warn = -1)
 	n <- length(phy$tip.label)
@@ -123,8 +125,12 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 		current = pro
 	}
   
-	results = list(y = y, phy = phy, score = current$score,
-                 nmax = nmax, nshift = length(curmodel))
+  ### return edges from the original tree
+	convert = match(phy$edge[, 2], origphy$edge[, 2])
+  convertmodel = convert[unlist(curmodel)]
+  
+	results = list(y = y, phy = origphy, score = current$score,
+                 nmax = nmax, nshift = length(convertmodel))
 	
   results$alpha = current$output$optpar
 	results$sigma2 = current$output$sigma2
@@ -133,7 +139,7 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 	  results$pshift = NULL
     results$shift = NULL
 	} else {
-	  results$pshift = unlist(curmodel)
+	  results$pshift = convertmodel
     results$shift = current$output$coefficients[-1]
     names(results$shift) = results$pshift
 	}

@@ -47,7 +47,7 @@ OUshifts(y, phy, method = c("mbic", "aic", "bic", "saic", "sbic"),
 }
 
 \references{
-Ho, L. S. T. and Ane, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. In press.
+Ho, L. S. T. and Ane, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. \bold{5}(11):1133-1146.
 
 Ingram, T. and Mahler, D.L. 2013. "SURFACE: detecting convergent
   evolution from comparative data by fitting Ornstein-Uhlenbeck models

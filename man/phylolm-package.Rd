@@ -13,7 +13,7 @@ Date: \tab 2015-08-31\cr
 License: \tab GPL (>= 2)\cr
 }
 }
-\author{Lam Si Tung Ho, C?cile An?, Robert Lachlan, Kelsey Tarpinia, Rachel Feldman
+\author{Lam Si Tung Ho, Cecile Ane, Robert Lachlan, Kelsey Tarpinia, Rachel Feldman
 
 Maintainer: Lam Si Tung Ho <lamho86@gmail.com>
 }

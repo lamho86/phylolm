@@ -56,7 +56,7 @@ This function uses an algorithm that is linear in the number of tips in the tree
   \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
 }
 \references{
-Ho, L. S. T. and An?, C. 2014. "A linear-time algorithm for Gaussian and
+Ho, L. S. T. and Ane, C. 2014. "A linear-time algorithm for Gaussian and
   non-Gaussian trait evolution models".  Systematic Biology \bold{63}(3):397-408.
 
 Ives, A. R. and T. Garland, Jr. 2010. "Phylogenetic logistic regression

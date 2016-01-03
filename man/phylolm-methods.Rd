@@ -18,6 +18,7 @@
 \usage{
 \method{print}{phylolm}(x, digits = max(3, getOption("digits") - 3), ...)
 \method{summary}{phylolm}(object, ...)
+\method{nobs}{phylolm}(object, ...)
 \method{residuals}{phylolm}(object,type = c("response"), ...)
 \method{predict}{phylolm}(object, newdata = NULL, ...)
 \method{vcov}{phylolm}(object, ...)

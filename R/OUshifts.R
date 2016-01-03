@@ -3,8 +3,10 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
       	stop("object \"phy\" is not of class \"phylo\".")
 	if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
-
+  
+  origphy = phy
 	if (check.pruningwise) phy = reorder(phy, "pruningwise")
+  
 	method = match.arg(method)
 	options(warn = -1)
 	n <- length(phy$tip.label)
@@ -45,53 +47,61 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 	}	
 
 	score <- function(model,method) {
-		if (length(model)==0) {			
-			logLik = phylolm(y~1,phy=phy,model="OUfixedRoot")$logLik
+		if (length(model)==0) {
+      output = phylolm(y~1,phy=phy,model="OUfixedRoot")
+			logLik = output$logLik
 			if (method=="aic") score = -2*logLik + 2*(length(model)+3)
 			if (method=="bic") score = -2*logLik + log(n)*(length(model)+3)
 			if (method=="mbic") score = -2*logLik + 3*log(n)
 			if (method=="saic") score = -2*logLik + 2*(length(model)+3)
 			if (method=="sbic") score = -2*logLik + log(n)*(length(model)+3)
-			return(score)
+			return(list(score = score, output = output))
 		}
 		X = v[ROOT,]
 		for (i in 1:length(model)) X = cbind(X,v[des[model[[i]]],])
 		ch = check(model)
-		if (ch[1]==0) return(Inf)
-		logLik = phylolm(y~X-1,phy=phy,model="OUfixedRoot")$logLik
+		if (ch[1]==0) return(list(score = Inf, output = NULL))
+    output = phylolm(y~X-1,phy=phy,model="OUfixedRoot")
+		logLik = output$logLik
 		if (method=="aic") score = -2*logLik + 2*(length(model)+3)
 		if (method=="bic") score = -2*logLik + log(n)*(length(model)+3)
 		if (method=="mbic") score = -2*logLik + ch[2]
 		if (method=="saic") score = -2*logLik + 2*(2*length(model)+3)
 		if (method=="sbic") score = -2*logLik + log(n)*(2*length(model)+3)
-		return(score)
+    
+		return(list(score = score, output = output))
 	}
 
 	curmodel = list()	
-	curscore = score(curmodel,method)
+  current = score(curmodel,method)
 	flag = 0
+  
 	promodel = curmodel
-	proscore = curscore
+	pro = current
+  
 	while (flag==0) {		
 		for (i in 1:N) {
 			if (sum(which(curmodel==i))>0) {	
 				pos = which(curmodel==i)
-				tempmodel = curmodel[-pos]				
-				tempscore = score(tempmodel,method)								
-				if (tempscore < proscore) {
+				tempmodel = curmodel[-pos]
+        temp = score(tempmodel,method)
+        
+				if (temp$score < pro$score) {
 					promodel = tempmodel
-					proscore = tempscore
+					pro = temp
 					flag = flag + 1
 				}
 			}
+      
 			if (sum(which(curmodel==i))==0) {
 				if (length(curmodel) < nmax) {
 					tempmodel = curmodel
 					tempmodel[[length(tempmodel)+1]] = i
-					tempscore = score(tempmodel,method)							
-					if (tempscore < proscore) {
+					temp = score(tempmodel,method)
+					
+          if (temp$score < pro$score) {
 						promodel = tempmodel
-						proscore = tempscore
+						pro = temp
 						flag = flag + 1
 					}
 				}
@@ -100,10 +110,11 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 						if ((anc[i]==des[curmodel[[j]]])||(des[i]==anc[curmodel[[j]]])||(anc[i]==anc[curmodel[[j]]])) {
 							tempmodel = curmodel
 							tempmodel[j] = i
-							tempscore = score(tempmodel,method)									
-							if (tempscore < proscore) {
+							temp = score(tempmodel,method)
+							
+              if (temp$score < pro$score) {
 							promodel = tempmodel 
-							proscore = tempscore
+							pro = temp
 							flag = flag + 1
 							}
 						}	
@@ -111,10 +122,28 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 		}
 		if (flag > 0) flag = 0 else flag = 1
 		curmodel = promodel
-		curscore = proscore	
+		current = pro
 	}
-	results = list(y = y, phy = phy, score=curscore, nmax = nmax, nshift = length(curmodel))
-	if (results$nshift==0) results$pshift = NULL else results$pshift = unlist(curmodel)
+  
+  ### return edges from the original tree
+	convert = match(phy$edge[, 2], origphy$edge[, 2])
+  convertmodel = convert[unlist(curmodel)]
+  
+	results = list(y = y, phy = origphy, score = current$score,
+                 nmax = nmax, nshift = length(convertmodel))
+	
+  results$alpha = current$output$optpar
+	results$sigma2 = current$output$sigma2
+	results$mean = as.numeric(current$output$coefficients[1])
+	if (results$nshift==0) {
+	  results$pshift = NULL
+    results$shift = NULL
+	} else {
+	  results$pshift = convertmodel
+    results$shift = current$output$coefficients[-1]
+    names(results$shift) = results$pshift
+	}
+  
 	class(results) = "OUshifts"
 	return(results)
 	}

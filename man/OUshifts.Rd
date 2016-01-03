@@ -31,18 +31,23 @@ OUshifts(y, phy, method = c("mbic", "aic", "bic", "saic", "sbic"),
   \item{score}{the information criterion value of the optimal model.}
   \item{nmax}{maximum allowed number of shifts.}
   \item{nshift}{estimated number of shifts.}
+  \item{alpha}{estimated selection strength of the optimal model.}
+  \item{sigma2}{estimated variance of the optimal model.}
+  \item{mean}{estimated the expected value of the trait in lineages without shift.}
   \item{pshift}{positions of shifts, i.e. indicies of edges where the estimated shifts occurred. The same ordering of edges is used as in phy.}
-  
+  \item{shift}{estimated shifts in the expected value of the trait.}
 }
 
 \note{
   The tip labels in the tree are matched to the data names. The default choice for the parameters are as follows:
   \code{method = "mbic"},
   \code{check.pruningwise = TRUE}
+  
+  Due to unidentifiability, the parameters are the expected value of the trait and their shifts instead of the ancestral trait, the optimal values and shifts in optimal values.
 }
 
 \references{
-Ho, L. S. T. and Ané, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. In press.
+Ho, L. S. T. and Ane, C. 2014.  "Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models". Methods in Ecology and Evolution. \bold{5}(11):1133-1146.
 
 Ingram, T. and Mahler, D.L. 2013. "SURFACE: detecting convergent
   evolution from comparative data by fitting Ornstein-Uhlenbeck models
@@ -64,7 +69,7 @@ Zhang, N.R. and Siegmund, D.O. 2007. "A modified Bayes information
 data(flowerSize)
 data(flowerTree)
 result <- OUshifts(flowerSize$log_transformed_size, flowerTree, 
-                   method = "mbic", nmax = 10)
+                   method = "mbic", nmax = 1)
 plot.OUshifts(result,show.tip.label=FALSE)
 }
 

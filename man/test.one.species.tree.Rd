@@ -1,15 +1,14 @@
-\encoding{latin1}
 \name{test.one.species.tree}
 \alias{test.one.species.tree}
 
-\title{Tests the fit of a population tree to data from quartet concordance factors}
+\title{Tests the fit of a population tree to quartet concordance factor data}
 \description{From a set of quartet concordance factors obtained from genetic data
- (proportion of loci that truly have a given quartet tree), this function tests
+ (proportion of loci that truly have a given quartet), this function tests
  the adequacy of the coalescent process on a given population tree, where branch
- lengths indicate coalescent units. }
+ lengths indicate coalescent units.}
 \usage{
 test.one.species.tree(cf, guidetree, prep, edge.keep,
-                      plot=TRUE, shape.correction = TRUE){
+                      plot=TRUE, shape.correction = TRUE)
 }
 
 \arguments{
@@ -19,38 +18,39 @@ test.one.species.tree(cf, guidetree, prep, edge.keep,
    with branch lengths in coalescent units.}
   \item{prep}{result of \code{test.tree.preparation(cf,guidetree)}.
    If the test is repeated multiple times on various resolutions of the guide tree
-   (see \code{edge.keep)}), doing this step only once saves time.}
+   (see \code{edge.keep}), it saves time to do this only once.}
   \item{edge.keep}{Indices of edges to keep in the guide tree.
    All other edges are collapsed to reflect ancestral panmixia.
    In the tested population tree, the collapsed edges have length set to 0.}
   \item{plot}{boolean. If TRUE, a number of plots are output.}
-  \item{shape.correction}{boolean. If true, the shapes of all Dirichlet distributions
+  \item{shape.correction}{boolean. If TRUE, the shapes of all Dirichlet distributions
    are corrected to be greater or equal to 1. This correction avoids Dirichlet densities
-   going near 0 or 1. It applies when the alpha parameter is estimated and
+   going near 0 or 1. It applies when the \eqn{\alpha}{alpha} parameter is estimated and
    when the outlier p-values are calculated.}
 }
 \value{
-  \item{alpha}{estimated alpha parameter.}
-  \item{negPseudoLoglik}{Negative pseudo log-likelihood of the final estimated population tree.}
+  \item{alpha}{estimated \eqn{\alpha}{alpha} parameter.}
+  \item{negPseudoLoglik}{Negative pseudo log-likelihood of the population tree.}
   \item{X2}{Chi-square statistic, from comparing the counts of outlier p-values
    (in \code{outlier.table}) to the expected counts.}
   \item{chisq.pval}{p-value from the chi-square test, obtained from the comparing the \code{X2}
    value to a chi-square distribution with 3 df.}
   \item{chisq.conclusion}{character string. If the chi-square test is significant, this
-   statement says if there is a excess (or a deficit) of outlier 4-taxon sets.}
+   statement says if there is an excess (or deficit) of outlier 4-taxon sets.}
   \item{outlier.table}{Table with 2 rows (observed and expected counts) and 4 columns:
-   number of 4-taxon sets with p-values p <= 0.01, 0.01<p<=0.05, 0.05<p<=0.10
-   or p>0.10.}
+   number of 4-taxon sets with p-values \eqn{p\leq 0.01}{p <= 0.01},
+   \eqn{0.01<p\leq 0.05}{0.01<p<=0.05}, \eqn{0.05<p\leq 0.10}{0.05<p<=0.10}
+   or \eqn{p>0.10}.}
   \item{outlier.pvalues}{Vector of outlier p-values, with as many entries as there
-   are rows in the input data 'cf', one for each set of 4 taxa.}
+   are rows in \code{cf}, one for each set of 4 taxa.}
   \item{cf.exp}{Matrix of concordance factors expected from the estimated population tree,
-   with as many rows as in the input data 'cf' (one row for each 4-taxon set) and 3 columns
+   with as many rows as in \code{cf} (one row for each 4-taxon set) and 3 columns
    (one for each of the 3 possible quartet trees).}
 }
 \references{
 Stenz, Noah W. M., Bret Larget, David A. Baum and Cécile Ané (2015).
 Exploring tree-like and non-tree-like patterns using genome sequences:
-An example using the inbreeding plant species \italics{Arabidopsis thaliana} (L.) Heynh.
+An example using the inbreeding plant species \emph{Arabidopsis thaliana} (L.) Heynh.
 Systematic Biology, \bold{64}(5):809-823.
 }
 \author{Cécile Ané}
@@ -81,10 +81,10 @@ partialTree$outlier.table
 outlier.4taxa <- which(partialTree$outlier.pvalues < 0.01)
 length(outlier.4taxa) # 483 4-taxon sets with outlier p-value below 0.01
 q01 = as.matrix(quartetCF[outlier.4taxa,1:4])
-sort(table(as.vector(q01)),decreasing=T)
+sort(table(as.vector(q01)),decreasing=TRUE)
 # So: Cnt_1 and Vind_1 both appear in 239 of these 483 outlier 4-taxon sets.
-sum(apply(q01,1,function(x){"Cnt_1" %in% x | "Vind_1" %in% x}))
+sum(apply(q01,1,function(x){"Cnt_1" \%in\% x | "Vind_1" \%in\% x}))
 # 266 outlier 4-taxon sets have either Cnt_1 or Vind_1
-sum(apply(q01,1,function(x){"Cnt_1" %in% x & "Vind_1" %in% x}))
+sum(apply(q01,1,function(x){"Cnt_1" \%in\% x & "Vind_1" \%in\% x}))
 # 212 outlier 4-taxon sets have both Cnt_1 and Vind_1
 }

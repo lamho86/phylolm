@@ -11,5 +11,6 @@ Depends: R (>= 3.0), ape
 Description: Provides functions for fitting phylogenetic linear models and phylogenetic generalized linear models. The computation uses an algorithm that is linear in the number of tips in the tree. The package also provides functions for simulating continuous or binary traits along the tree. Other tools include functions to test the adequacy of a population tree.
 License: GPL (>= 2) | file LICENSE
 URL: https://cran.r-project.org/package=phylolm
+Encoding: UTF-8
 Packaged: 2016-01-03
 NeedsCompilation: yes

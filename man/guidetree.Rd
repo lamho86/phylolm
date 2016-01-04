@@ -15,7 +15,7 @@ Quartet Max Cut to estimate the tree topology.}
 \references{
 Stenz, Noah W. M., Bret Larget, David A. Baum and Cécile Ané (2015).
 Exploring tree-like and non-tree-like patterns using genome sequences:
-An example using the inbreeding plant species \italics{Arabidopsis thaliana} (L.) Heynh.
+An example using the inbreeding plant species \emph{Arabidopsis thaliana} (L.) Heynh.
 Systematic Biology, \bold{64}(5):809-823.
 
 TICR pipeline: github.com/nstenz/TICR

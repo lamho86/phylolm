@@ -10,7 +10,7 @@ Other tools include functions to test the adequacy of a population tree.}
 Package: \tab phylolm\cr
 Type: \tab Package\cr
 Version: \tab 2.4\cr
-Date: \tab 2016-01-03\cr
+Date: \tab 2016-01-08\cr
 License: \tab GPL (>= 2)\cr
 }
 }

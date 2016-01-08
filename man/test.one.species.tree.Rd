@@ -59,7 +59,7 @@ Systematic Biology, \bold{64}(5):809-823.
 \examples{
 data(quartetCF)
 data(guidetree)
-prelim <- test.tree.preparation(quartetCF,guidetree)
+\donttest{prelim <- test.tree.preparation(quartetCF,guidetree) # takes 5-10 seconds
 
 # test of panmixia: all edges collapsed, none resolved.
 panmixia <- test.one.species.tree(quartetCF,guidetree,prelim,edge.keep=NULL)
@@ -87,4 +87,5 @@ sum(apply(q01,1,function(x){"Cnt_1" \%in\% x | "Vind_1" \%in\% x}))
 # 266 outlier 4-taxon sets have either Cnt_1 or Vind_1
 sum(apply(q01,1,function(x){"Cnt_1" \%in\% x & "Vind_1" \%in\% x}))
 # 212 outlier 4-taxon sets have both Cnt_1 and Vind_1
+}
 }

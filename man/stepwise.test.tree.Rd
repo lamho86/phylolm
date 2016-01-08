@@ -69,6 +69,7 @@ Systematic Biology, \bold{64}(5):809-823.
 \examples{
 data(quartetCF)
 data(guidetree)
-resF <- stepwise.test.tree(quartetCF,guidetree,startT="fulltree")
+\donttest{resF <- stepwise.test.tree(quartetCF,guidetree,startT="fulltree") # takes ~ 1 min
 resF[1:9]
+}
 }

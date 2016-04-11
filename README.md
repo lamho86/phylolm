@@ -25,6 +25,6 @@ A linear-time algorithm for Gaussian and non-Gaussian trait evolution models.
 - stepwise model selection (from v2.3)
 - OU shift detection
 - continuous and discrete trait simulators with covariates
-- allowing measurement errors in phylogenetic linear regression (from v2.41)
 - bootstrap-based confidence intervals for phylogenetic logistic regression (from v2.3)
 - goodness-of-fit test of a population tree with the coalescent (from v.2.4)
+- allowing measurement errors in phylogenetic linear regression (from v2.41)

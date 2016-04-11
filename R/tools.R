@@ -56,8 +56,8 @@ transf.branch.lengths <-
       stop("the tree is supposed to have no root edge (or of length 0).")
 
   ## Default parameters
-  parameters.default = c(0,1,1,1,0)
-  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate")
+  parameters.default = c(0,1,1,1,0,0)
+  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "err_sigma2")
 
   ## User defined parameters
   if (is.null(parameters)) {
@@ -70,13 +70,15 @@ transf.branch.lengths <-
                       is.null(parameters$lambda),
                       is.null(parameters$kappa),
                       is.null(parameters$delta),
-                      is.null(parameters$rate))
+                      is.null(parameters$rate),
+                      is.null(parameters$err_sigma2))
       parameters.user <- c(parameters$alpha,
                            parameters$lambda,
                            parameters$kappa,
                            parameters$delta,
-                           parameters$rate)
-      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate")
+                           parameters$rate,
+                           parameters$err_sigma2)
+      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "err_sigma2")
       parameters <- parameters.default
       parameters[specified] <- parameters.user 
     }				
@@ -85,10 +87,12 @@ transf.branch.lengths <-
     lambda = parameters[2],
     kappa = parameters[3],
     delta = parameters[4],
-    rate = parameters[5])
+    rate = parameters[5],
+    err_sigma2 = parameters[6]) # note that err_sigma2 = true_err_sigma2/sigma2
 
   root.edge = 0 # default, holds for most models. Assumes original tree has no root edge.
   diagWeight = rep(1,n)
+  errEdge = rep(p$err_sigma2,n)
 
   ## BM model
   if (model %in% c("BM","trend")) {
@@ -120,6 +124,7 @@ transf.branch.lengths <-
     times <- pruningwise.branching.times(phy) # has internal nodes only
     Tmax <- max(times)
     alpha = p$alpha
+    errEdge = errEdge*exp(2*alpha*D[des[externalEdge]]) # adjust measurement errors for OU models
     ## OUrandomRoot model	
     if (model=="OUrandomRoot") {
       distFromRoot <-  exp(-2*alpha*times) # fixit: divide by 2 alpha??
@@ -168,7 +173,8 @@ transf.branch.lengths <-
       edge.length = (exp(rate*distFromRoot[des])-exp(rate*distFromRoot[anc]))/rate
     }			
   }
-		
+	
+  edge.length[externalEdge] = edge.length[externalEdge] + errEdge # add measurement errors to the tree
   phy$edge.length = edge.length
   phy$root.edge = root.edge
   names(diagWeight) = phy$tip.label

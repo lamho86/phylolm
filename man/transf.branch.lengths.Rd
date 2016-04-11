@@ -59,14 +59,14 @@ length added to tip \eqn{i} to make the tree ultrametric.
     diagonal matrix  for the generalized 3-point structure.}
 }
 \references{
-  Ho, L. S. T. and Ané, C. \emph{A linear-time algorithm for Gaussian
+  Ho, L. S. T. and Ane, C. \emph{A linear-time algorithm for Gaussian
     and non-Gaussian trait evolution models}. Systematic Biology \bold{63}(3):397-408.
 }
 \author{Lam Si Tung Ho}
 \note{
 The default choice for the parameters are as follows: \code{alpha=0} for
 the selection strength in the OU model, \code{lambda=1}, \code{kappa=1},
-\code{delta=1}, \code{rate=0} for the EB model. These default choices
+\code{delta=1}, \code{rate=0} for the EB model, \code{err_sigma2=0} for the variance of measurement errors. These default choices
 correspond to the BM model.
 
 Edges in the output tree are in pruningwise order.

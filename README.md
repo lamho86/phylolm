@@ -18,6 +18,12 @@ A linear-time algorithm for Gaussian and non-Gaussian trait evolution models.
 *Systematic Biology* 63(3):397-408.
 [(link to pdf)](http://sysbio.oxfordjournals.org/cgi/reprint/syu005?ijkey=bIsHxa2dpqXCplc&keytype=ref)
 
+### Installation
+Install `phylolm` from `github`:
+```{r}
+devtools::install_github("lamho86/phylolm")
+```
+
 ### Main features
 
 - phylogenetic signal

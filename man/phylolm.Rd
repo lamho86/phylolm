@@ -8,7 +8,7 @@
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
        lower.bound = NULL, upper.bound = NULL, 
-       starting.value = NULL, ...)
+       starting.value = NULL, measurement_error = FALSE, ...)
 }
 
 \arguments{
@@ -20,6 +20,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
   \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
+  \item{measurement_error}{a logical value indicating whether there is measurement errors \code{error_sigma2}.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
 \details{This function uses an algorithm that is linear in the number of
@@ -40,10 +41,12 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
   \eqn{[10^{-5},3]} for \eqn{\delta}{delta} and
   \eqn{[-3/T,0]} for \code{rate}, where \eqn{T} is the mean root-to-tip distance.
+  \eqn{[10^{-16}, 10^{16}]} for ratio \code{error_sigma2}/\code{sigma2} (if measurement errors exist).
 }
 \value{
    \item{coefficients}{the named vector of coefficients.}
    \item{sigma2}{the maximum likelihood estimate of the variance rate \eqn{\sigma^2}{sigma^2}.}
+   \item{err_sigma2}{the maximum likelihood estimate of the variance of the measurement errors.}
    \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta or rate).}
    \item{logLik}{the maximum of the log likelihood.}
    \item{p}{the number of all parameters of the model.}
@@ -121,6 +124,13 @@ y <- b0 + b1*x +
 dat = data.frame(trait=y[taxa],pred=x[taxa])
 fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda")
 summary(fit)
+
+# adding measurement errors
+z <- y + rnorm(60,0,1)
+dat = data.frame(trait=z[taxa],pred=x[taxa])
+fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda",measurement_error=TRUE)
+summary(fit)
+
 }
 
 

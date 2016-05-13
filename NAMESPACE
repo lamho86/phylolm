@@ -11,6 +11,9 @@ importFrom("stats", "AIC", "add.scope", "binomial", "coef",
              "optim", "pnorm", "poisson", "printCoefmat", "pt",
              "quantile", "reorder", "rnorm", "runif", "sd", "terms",
              "var", "nobs")
+importFrom("graphics", "hist", "mtext", "points")
+importFrom("stats", "chisq.test", "optimize", "pbeta")
+importFrom("utils", "flush.console")
 
 S3method(AIC,logLik.phyloglm)
 S3method(AIC,logLik.phylolm)

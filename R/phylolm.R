@@ -1,6 +1,6 @@
 phylolm <- function(formula, data=list(), phy, 
 	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
-	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, ...) 
+	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, measurement_error = FALSE, ...) 
 {
   ## initialize	
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
@@ -67,13 +67,13 @@ phylolm <- function(formula, data=list(), phy,
   Tmax = mean(dis)
 
   ## Default bounds
-  bounds.default = matrix(c(1e-7/Tmax,50/Tmax,1e-7,1,1e-6,1,1e-5,3,-3/Tmax,0), ncol=2, byrow=TRUE)
-  rownames(bounds.default) = c("alpha","lambda","kappa","delta","rate")
+  bounds.default = matrix(c(1e-7/Tmax,50/Tmax,1e-7,1,1e-6,1,1e-5,3,-3/Tmax,0,1e-16,1e16), ncol=2, byrow=TRUE)
+  rownames(bounds.default) = c("alpha","lambda","kappa","delta","rate","err_sigma2")
   colnames(bounds.default) = c("min","max")
 
   ## Default starting values
-  starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax) 
-  names(starting.values.default) = c("alpha","lambda","kappa","delta","rate")
+  starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax,1) 
+  names(starting.values.default) = c("alpha","lambda","kappa","delta","rate","err_sigma2")
 
   ## User defined bounds and starting values
   if (is.null(lower.bound)) {
@@ -100,14 +100,21 @@ phylolm <- function(formula, data=list(), phy,
     if (model=="delta") starting.value = starting.values.default[4]
     if (model=="EB") starting.value = starting.values.default[5]
   }	
+  if (measurement_error) {
+    lower.bound = c(lower.bound, bounds.default[6,1])
+    upper.bound = c(upper.bound, bounds.default[6,2])
+    starting.value = c(starting.value, starting.values.default[6])
+  }
 
   ## preparing for general use of "parameter" for branch length transformation
-  prm = list(myname = starting.value)
+  prm = list(myname = starting.value[1])
   names(prm) = model # good for lambda, kappa, delta
-  if (model %in% OU)
-    names(prm) = "alpha"
-  if (model == "EB")
-    names(prm) = "rate"
+  if (model %in% OU) names(prm) = "alpha"
+  if (model == "EB") names(prm) = "rate"
+  if (measurement_error) {
+    if (model %in% c("BM","trend")) names(prm) = "err_sigma2"
+    else prm[["err_sigma2"]] = starting.value[2]
+  }
 	
   ## log-likelihood, computation using the three-point stucture
   ole= 4 + 2*d + d*d # output length
@@ -149,20 +156,23 @@ phylolm <- function(formula, data=list(), phy,
   upper = upper.bound
   start = starting.value
 
-  if (model %in% c("BM","trend")) {
+  if ((model %in% c("BM","trend"))&&(!measurement_error)) {
     BMest = loglik(prm, y, X) # root edge taken to be 0
-    results <- list(coefficients=BMest$betahat, sigma2=BMest$sigma2hat, optpar=NULL,
+    results <- list(coefficients=BMest$betahat, sigma2=BMest$sigma2hat, optpar=NULL, err_sigma2 = 0,
                     logLik=-BMest$n2llh/2, p=1+d, aic=2*(1+d)+BMest$n2llh, vcov = BMest$vcov)
   } else {
     ## Optimization of phylogenetic correlation parameter is needed
-    if ((lower>start)||(upper<start))
+    if (sum(lower>start)+sum(upper<start)>0)
       stop("The starting value is not within the bounds of the parameter.")
+    
     minus2llh <- function(logvalue) {
-      if (model == "EB") prm[[1]]=logvalue # which is 'rate', not log(rate)
-      else prm[[1]]=exp(logvalue)
+      if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate)
+      else prm[[1]]=exp(logvalue[1]) # first element is the parameter of the model
+      if ((measurement_error)&&(!(model %in% c("BM","trend")))) prm[[2]]=exp(logvalue[2])
       loglik(prm, y, X)$n2llh
     }
-    if (lower==upper) {
+    
+    if (lower[1]==upper[1]) {
       MLEvalue = lower
     } else {
       if (model == "EB") {
@@ -176,7 +186,8 @@ phylolm <- function(formula, data=list(), phy,
       }
       opt <- optim(logstart, fn = minus2llh,
                    method = "L-BFGS-B",lower=loglower, upper = logupper, ...)
-      if (model == "EB") MLEvalue = as.numeric(opt$par) else MLEvalue = as.numeric(exp(opt$par))
+      if (model == "EB") MLEvalue = as.numeric(opt$par[1]) else MLEvalue = as.numeric(exp(opt$par[1]))
+      if ((measurement_error)&&(!(model %in% c("BM","trend")))) MLEerr_sigma2 = as.numeric(exp(opt$par[2]))
     }
     if ((isTRUE(all.equal(MLEvalue,lower, tol=tol)))||(isTRUE(all.equal(MLEvalue,upper,tol=tol)))) {
       matchbound = 1
@@ -187,11 +198,27 @@ phylolm <- function(formula, data=list(), phy,
  You may change the bounds using options "upper.bound" and "lower.bound".\n'))
     }
     prm[[1]] = MLEvalue
+    err_sigma2hat = 0
+    if ((measurement_error)&&(!(model %in% c("BM","trend")))) prm[[2]] = MLEerr_sigma2
     BMest = loglik(prm, y, X)
+    if (measurement_error) {
+      if (model %in% c("BM","trend")) err_sigma2hat = MLEvalue*BMest$sigma2hat
+      else err_sigma2hat = MLEerr_sigma2*BMest$sigma2hat
+    }
     if (model %in% OU)
       BMest$sigma2hat = 2*MLEvalue * BMest$sigma2hat # was "gamma" originally: sigma2 = 2 alpha gamma
-    results <- list(coefficients=BMest$betahat, sigma2=BMest$sigma2hat, optpar=MLEvalue,
+    results <- list(coefficients=BMest$betahat, sigma2=BMest$sigma2hat, optpar=MLEvalue, err_sigma2 = err_sigma2hat,
                     logLik=-BMest$n2llh/2, p=2+d, aic=2*(2+d)+BMest$n2llh, vcov = BMest$vcov)
+    if (model %in% c("BM","trend")) { # adjust for BM and trend models
+      results$optpar = NULL
+      results$p = results$p - 1
+      results$aic = results$aic - 2
+    }
+  }
+  
+  if (measurement_error) {
+    results$p = results$p + 1 # adjust the number of parameters
+    results$aic = results$aic + 2 # adjust AIC value
   }
 
   names(results$coefficients) = colnames(X)
@@ -229,6 +256,7 @@ print.phylolm <- function(x, digits = max(3, getOption("digits") - 3), ...){
     cat("\n")
   }
   cat("sigma2:",x$sigma2,"\n")
+  if (x$err_sigma2 > 0) cat("err_sigma2:",x$err_sigma2,"\n")
   cat("\nCoefficients:\n")
   print(x$coefficients)
 }
@@ -240,7 +268,7 @@ summary.phylolm <- function(object, ...) {
                p.value = 2*pt(-abs(tval), df=object$n - object$d))
   res <- list(call=object$call, coefficients=TAB,
               residuals = object$residuals, sigma2 = object$sigma2,
-              optpar=object$optpar, logLik=object$logLik,
+              optpar=object$optpar, err_sigma2 = object$err_sigma2, logLik=object$logLik,
               df=object$p, aic=object$aic, model=object$model,
               mean.tip.height=object$mean.tip.height)
   class(res) = "summary.phylolm"
@@ -268,6 +296,7 @@ print.summary.phylolm <- function(x, digits = max(3, getOption("digits") - 3), .
     cat("\n")
   }
   cat("sigma2:",x$sigma2,"\n")
+  if (x$err_sigma2 > 0) cat("err_sigma2:",x$err_sigma2,"\n")
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, P.values=TRUE, has.Pvalue=TRUE)
   if (!is.null(x$optpar)) {

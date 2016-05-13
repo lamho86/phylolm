@@ -18,6 +18,12 @@ A linear-time algorithm for Gaussian and non-Gaussian trait evolution models.
 *Systematic Biology* 63(3):397-408.
 [(link to pdf)](http://sysbio.oxfordjournals.org/cgi/reprint/syu005?ijkey=bIsHxa2dpqXCplc&keytype=ref)
 
+### Installation
+Install `phylolm` from `github`:
+```{r}
+devtools::install_github("lamho86/phylolm")
+```
+
 ### Main features
 
 - phylogenetic signal
@@ -27,3 +33,4 @@ A linear-time algorithm for Gaussian and non-Gaussian trait evolution models.
 - continuous and discrete trait simulators with covariates
 - bootstrap-based confidence intervals for phylogenetic logistic regression (from v2.3)
 - goodness-of-fit test of a population tree with the coalescent (from v.2.4)
+- allowing measurement errors in phylogenetic linear regression (from v2.4.1)

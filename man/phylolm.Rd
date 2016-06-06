@@ -7,7 +7,7 @@
 \usage{
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
-       lower.bound = NULL, upper.bound = NULL, 
+       lower.bound = NULL, upper.bound = NULL, boot=0,
        starting.value = NULL, measurement_error = FALSE, ...)
 }
 
@@ -19,6 +19,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{model}{a model for the covariance (see Details).}
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
+  \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
   \item{measurement_error}{a logical value indicating whether there is measurement errors \code{error_sigma2}.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
@@ -46,7 +47,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
 \value{
    \item{coefficients}{the named vector of coefficients.}
    \item{sigma2}{the maximum likelihood estimate of the variance rate \eqn{\sigma^2}{sigma^2}.}
-   \item{err_sigma2}{the maximum likelihood estimate of the variance of the measurement errors.}
+   \item{sigma2_error}{the maximum likelihood estimate of the variance of the measurement errors.}
    \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta or rate).}
    \item{logLik}{the maximum of the log likelihood.}
    \item{p}{the number of all parameters of the model.}
@@ -64,6 +65,13 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
    \item{formula}{the model formula}
    \item{call}{the original call to the function}
    \item{model}{the phylogenetic model for the covariance}
+   \item{bootmean}{(\code{boot > 0} only) bootstrap means of the parameters estimated.}
+  \item{bootsd}{(\code{boot > 0} only) bootstrap standard deviations of the estimated parameters.}
+  \item{bootconfint95}{(\code{boot > 0} only) bootstrap 95\% confidence interval.}
+  \item{bootmeansdLog}{(\code{boot > 0} only) bootstrap mean and standard deviation of the logs of the estimated covariance parameters.}
+  \item{bootnumFailed}{(\code{boot > 0} only) number of independent bootstrap replicates for which
+  \code{phylolm} failed. These failures may be due to the bootstrap data having too few 0's or too few 1's.}
+  \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
 }
 \references{
 Ho, L. S. T. and Ane, C. 2014.  "A linear-time algorithm for Gaussian and non-Gaussian trait evolution models". Systematic Biology \bold{63}(3):397-408.
@@ -125,10 +133,10 @@ dat = data.frame(trait=y[taxa],pred=x[taxa])
 fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda")
 summary(fit)
 
-# adding measurement errors
+# adding measurement errors and bootstrap
 z <- y + rnorm(60,0,1)
 dat = data.frame(trait=z[taxa],pred=x[taxa])
-fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda",measurement_error=TRUE)
+fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda",measurement_error=TRUE,boot=100)
 summary(fit)
 
 }

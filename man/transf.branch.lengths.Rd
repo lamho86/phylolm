@@ -66,7 +66,7 @@ length added to tip \eqn{i} to make the tree ultrametric.
 \note{
 The default choice for the parameters are as follows: \code{alpha=0} for
 the selection strength in the OU model, \code{lambda=1}, \code{kappa=1},
-\code{delta=1}, \code{rate=0} for the EB model, \code{err_sigma2=0} for the variance of measurement errors. These default choices
+\code{delta=1}, \code{rate=0} for the EB model, \code{sigma2_error=0} for the variance of measurement errors. These default choices
 correspond to the BM model.
 
 Edges in the output tree are in pruningwise order.

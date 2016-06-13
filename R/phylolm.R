@@ -383,7 +383,7 @@ phylolm <- function(formula, data=list(), phy,
     } # end of loop over bootstrap reps
     # summarize bootstrap estimates
     ind.na <- which(is.na(bootmatrix[,1]))
-    # indices of replicates that failed: phyloglm had an error
+    # indices of replicates that failed: phylolm had an error
     if (length(ind.na)>0) {
       bootmatrix <- bootmatrix[-ind.na,]
       numOnes <- range(apply(booty[,ind.na],2,sum))

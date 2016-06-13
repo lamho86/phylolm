@@ -79,7 +79,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{bootconfint95}{(\code{boot > 0} only) bootstrap 95\% confidence interval.}
   \item{bootmeansdLog}{(\code{boot > 0} only) bootstrap mean and standard deviation of the logs of the estimated covariance parameters.}
   \item{bootnumFailed}{(\code{boot > 0} only) number of independent bootstrap replicates for which
-  \code{phylolm} failed. These failures may be due to the bootstrap data having too few 0's or too few 1's.}
+  \code{phylolm} failed.}
   \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
 }
 \references{

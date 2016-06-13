@@ -7,8 +7,9 @@
 \usage{
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
-       lower.bound = NULL, upper.bound = NULL, boot=0,
-       starting.value = NULL, measurement_error = FALSE, ...)
+       lower.bound = NULL, upper.bound = NULL,
+       starting.value = NULL, measurement_error = FALSE,
+       boot=0,full.matrix = TRUE ...)
 }
 
 \arguments{
@@ -19,9 +20,10 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{model}{a model for the covariance (see Details).}
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
-  \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
-  \item{measurement_error}{a logical value indicating whether there is measurement errors \code{error_sigma2}.}
+  \item{measurement_error}{a logical value indicating whether there is measurement error \code{sigma2_error} (see Details).}
+  \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
+  \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
 \details{This function uses an algorithm that is linear in the number of
@@ -36,13 +38,20 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   model (\code{EB}), and the Brownian motion model with a trend
   (\code{trend}).
 
+  Using measurement error means that the covariance matrix is taken
+  to be \eqn{\sigma^2*V + \sigma^2_{error}*I}{sigma^2 * V + sigma^2_error * I}
+  where \eqn{V} is the phylogenetic covariance matrix from the chosen model,
+  \eqn{I} is the identity matrix, and \eqn{\sigma^2_{error}}{sigma^2_error} is the
+  variance of the measurement error (which could include environmental variability,
+  sampling error on the species mean, etc.).
+
   By default, the bounds on the phylogenetic parameters are
   \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha}, 
   \eqn{[10^{-7},1]} for \eqn{\lambda}{lambda},
   \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
   \eqn{[10^{-5},3]} for \eqn{\delta}{delta} and
   \eqn{[-3/T,0]} for \code{rate}, where \eqn{T} is the mean root-to-tip distance.
-  \eqn{[10^{-16}, 10^{16}]} for ratio \code{error_sigma2}/\code{sigma2} (if measurement errors exist).
+  \eqn{[10^{-16}, 10^{16}]} for the ratio \code{sigma2_error}/\code{sigma2} (if measurement errors is used).
 }
 \value{
    \item{coefficients}{the named vector of coefficients.}
@@ -113,6 +122,10 @@ The trend model can only be used with non-ultrametric trees. For this
 model, one predictor variable is added to the model whose values are the
 distances from the root to every tip of the tree. The estimate of the
 coefficent for this variable forms the trend value.
+
+Pagel's \eqn{\lambda}{lambda} model and measurement error cannot be used together:
+the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
+\eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
 }
 \seealso{
 \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
@@ -136,7 +149,7 @@ summary(fit)
 # adding measurement errors and bootstrap
 z <- y + rnorm(60,0,1)
 dat = data.frame(trait=z[taxa],pred=x[taxa])
-fit = phylolm(trait~pred,data=dat,phy=tre,model="lambda",measurement_error=TRUE,boot=100)
+fit = phylolm(trait~pred,data=dat,phy=tre,model="BM",measurement_error=TRUE,boot=100)
 summary(fit)
 
 }

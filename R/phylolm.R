@@ -8,7 +8,9 @@ phylolm <- function(formula, data=list(), phy,
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
   model = match.arg(model)	
   if ((model=="trend")&(is.ultrametric(phy)))
-   stop("the trend is unidentifiable for ultrametric trees.")	
+   stop("the trend is unidentifiable for ultrametric trees.")
+  if ((model=="lambda") && measurement_error)
+    stop("the lambda transformation and measurement error cannot be used together: they are not distinguishable")
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")	
   tol = 1e-10	
@@ -286,7 +288,7 @@ phylolm <- function(formula, data=list(), phy,
   results$model = model
   results$boot = boot
 
-
+  ## starting the bootstrap
   if (boot>0) {
   # Turn off warnings
     options(warn=-1)
@@ -334,7 +336,7 @@ phylolm <- function(formula, data=list(), phy,
     if (!(model %in% c("BM","trend"))) {
       colnames(bootmatrix)[colnumberalpha] <- names(prm)[1]
     }
-    cat("starting of the bootstrap data\n")
+
     for (i in 1:boot){
       y = booty[,i]
       # all other cases: first get 'prm' up-to-date.
@@ -344,17 +346,21 @@ phylolm <- function(formula, data=list(), phy,
       # otherwise: something needs to be optimized: m.e., alpha, or both.
       # below: storing 'standardized' estimated of m.e. variance in MLEsigma2_error. Rescaled later.
       if (!(model %in% c("BM","trend")) && lower[1] != upper[1]){
-        opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, ...)
-        if (model == "EB") {
-          bootmatrix[i,colnumberalpha] = as.numeric(opt$par[1]); # will be used later to update 'prm'
+        try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, ...),silent=TRUE)
+        if (!inherits(opt, 'try-error')){
+          if (model == "EB") {
+            bootmatrix[i,colnumberalpha] = as.numeric(opt$par[1]); # will be used later to update 'prm'
+          } else {
+            bootmatrix[i,colnumberalpha] = as.numeric(exp(opt$par[1]));
+          }
+          if(measurement_error)  MLEsigma2_error = as.numeric(exp(opt$par[2]))
         } else {
-          bootmatrix[i,colnumberalpha] = as.numeric(exp(opt$par[1]));
-        }
-        if(measurement_error)  MLEsigma2_error = as.numeric(exp(opt$par[2]))
-      } else {
-        if(measurement_error){
-          opt <- optim(logstart, fn = minus2llh_sinvar,method = "L-BFGS-B",lower=loglower, upper = logupper, ...)
-          MLEsigma2_error = as.numeric(exp(opt$par[1]))
+          if(measurement_error){
+            try(opt <- optim(logstart, fn = minus2llh_sinvar,method = "L-BFGS-B",lower=loglower, upper = logupper, ...),silent = TRUE)
+            if (!inherits(opt, 'try-error')){
+              MLEsigma2_error = as.numeric(exp(opt$par[1]))
+            }
+          }
         }
       }
 
@@ -502,10 +508,9 @@ print.summary.phylolm <- function(x, digits = max(3, getOption("digits") - 3), .
       tmp = ifelse(tmp %in% c("sigma2", "sigma2_error"), tmp, "optpar")
       cat(colnames(x$bootmeansdLog)[i],": ",x[[tmp]],"\n", sep="")
       cat("      bootstrap mean: ",    x$bootmean[ncoef+i]   ," (on raw scale)","\n",sep="")
-      if (!(x$model %in% c("EB","lambda")) || tmp != "optpar"){
+      if (!(x$model %in% c("EB","lambda")) || tmp != "optpar")
         cat("                      ",exp(x$bootmeansdLog[1,i])," (on log scale, then back transformed)","\n",sep="")
-        cat("      bootstrap 95% CI: (",x$bootconfint95[1,ncoef+i],",",x$bootconfint95[2,ncoef+i],")\n\n", sep="")
-      }
+      cat("      bootstrap 95% CI: (",x$bootconfint95[1,ncoef+i],",",x$bootconfint95[2,ncoef+i],")\n\n", sep="")
     }
     cat("Parametric bootstrap results based on",x$bootNrep,"fitted replicates\n")
   }

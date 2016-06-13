@@ -477,8 +477,7 @@ You can increase this bound by increasing 'btol'.")
     # simulate all bootstrap data sets
     bootobject <- rbinTrait(n = boot, phy = phy, beta = results$coefficients,
                             alpha = results$alpha, X = X, model = "LogReg")
-    responsecolumn <- attr(attr(mf, "terms"), "response")
-    
+
     # analyze these bootstrapped data
     ncoeff = length(results$coefficients)
     bootmatrix <- matrix(NA, boot, ncoeff + 1)
@@ -561,10 +560,10 @@ summary.phyloglm <- function(object, ...) {
                p.value = 2*pnorm(-abs(zval)))
   else 
     TAB <- cbind(Estimate = coef(object), StdErr = se, z.value = zval,
-                 p.value = 2*pnorm(-abs(zval)), 
-#                  bootMean = object$bootmean[1:object$d], bootStdErr = object$bootsd[1:object$d],
                  lowerbootCI = object$bootconfint95[1,1:object$d], 
-                 upperbootCI = object$bootconfint95[2,1:object$d])
+                 upperbootCI = object$bootconfint95[2,1:object$d],
+                 p.value = 2*pnorm(-abs(zval)))
+
   if (object$method %in% c("logistic_MPLE","logistic_IG10")) {
     res <- list(call=object$call,
                 coefficients=TAB,

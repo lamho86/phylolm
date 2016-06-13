@@ -32,5 +32,6 @@ devtools::install_github("lamho86/phylolm")
 - OU shift detection
 - continuous and discrete trait simulators with covariates
 - bootstrap-based confidence intervals for phylogenetic logistic regression (from v2.3)
+  and phylogenetic regression (from v2.4.2)
 - goodness-of-fit test of a population tree with the coalescent (from v.2.4)
 - allowing measurement errors in phylogenetic linear regression (from v2.4.1)

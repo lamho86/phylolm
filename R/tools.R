@@ -57,7 +57,7 @@ transf.branch.lengths <-
 
   ## Default parameters
   parameters.default = c(0,1,1,1,0,0)
-  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "err_sigma2")
+  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "sigma2_error")
 
   ## User defined parameters
   if (is.null(parameters)) {
@@ -71,14 +71,14 @@ transf.branch.lengths <-
                       is.null(parameters$kappa),
                       is.null(parameters$delta),
                       is.null(parameters$rate),
-                      is.null(parameters$err_sigma2))
+                      is.null(parameters$sigma2_error))
       parameters.user <- c(parameters$alpha,
                            parameters$lambda,
                            parameters$kappa,
                            parameters$delta,
                            parameters$rate,
-                           parameters$err_sigma2)
-      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "err_sigma2")
+                           parameters$sigma2_error)
+      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "sigma2_error")
       parameters <- parameters.default
       parameters[specified] <- parameters.user 
     }				
@@ -88,11 +88,11 @@ transf.branch.lengths <-
     kappa = parameters[3],
     delta = parameters[4],
     rate = parameters[5],
-    err_sigma2 = parameters[6]) # note that err_sigma2 = true_err_sigma2/sigma2
+    sigma2_error = parameters[6]) # note that sigma2_error = true_sigma2_error/sigma2
 
   root.edge = 0 # default, holds for most models. Assumes original tree has no root edge.
   diagWeight = rep(1,n)
-  errEdge = rep(p$err_sigma2,n)
+  errEdge = rep(p$sigma2_error,n)
 
   ## BM model
   if (model %in% c("BM","trend")) {

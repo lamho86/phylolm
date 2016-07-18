@@ -48,14 +48,16 @@ phylolm <- function(formula, data=list(), phy,
   ## preparing for OU model
   if (model %in% OU) {
     D = numeric(n)
-    if (!is.ultrametric(phy)) flag = 1
-    dis = pruningwise.distFromRoot(phy)
-    Tmax = max(dis[1:n])
-    D = Tmax - dis[1:n]
-    D = D - mean(D)
-    phy$edge.length[externalEdge] <- phy$edge.length[externalEdge] + D[des[externalEdge]]
-    ## phy is now ultrametric, with height Tmax:
-    Tmax = Tmax + min(D)
+    if (!is.ultrametric(phy)) {
+      flag = 1
+      dis = pruningwise.distFromRoot(phy)
+      Tmax = max(dis[1:n])
+      D = Tmax - dis[1:n]
+      D = D - mean(D)
+      phy$edge.length[externalEdge] <- phy$edge.length[externalEdge] + D[des[externalEdge]]
+      ## phy is now ultrametric, with height Tmax:
+      Tmax = Tmax + min(D)
+    }
   }
 	
   ## preparing for trend model

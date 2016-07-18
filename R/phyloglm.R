@@ -618,7 +618,7 @@ print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), 
   }
   if (x$method == "poisson_GEE") cat("scale:",x$scale,"\n")
   cat("\nCoefficients:\n")
-  printCoefmat(x$coefficients, P.values=FALSE, has.Pvalue=FALSE)
+  printCoefmat(x$coefficients, P.values=TRUE, has.Pvalue=TRUE)
   if (x$method %in% c("logistic_MPLE","logistic_IG10"))
     cat("\nNote: Wald-type p-values for coefficients, conditional on alpha=",
       x$alpha,"\n",sep="")

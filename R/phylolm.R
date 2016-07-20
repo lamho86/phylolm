@@ -170,7 +170,7 @@ phylolm <- function(formula, data=list(), phy,
                     logLik=-BMest$n2llh/2, p=1+d, aic=2*(1+d)+BMest$n2llh, vcov = BMest$vcov)
   } else {
     ##------- Optimization of phylogenetic correlation parameter is needed ---------#
-    # firts: checks of bounds
+    # first: checks of bounds
     if (sum(lower>start)+sum(upper<start)>0 )
       stop("The starting value is not within the bounds of the parameter.")
 

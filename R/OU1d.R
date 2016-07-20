@@ -1,4 +1,5 @@
 OU1d.loglik <- function(trait, phy, model=c("OUrandomRoot","OUfixedRoot"), parameters=NULL) {
+  
   ## initialize  
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
   model = match.arg(model)	
@@ -46,7 +47,7 @@ OU1d.loglik <- function(trait, phy, model=c("OUrandomRoot","OUfixedRoot"), param
            sigma2_error = parameters[5])
   
   ## preparing for general use of "parameter" for branch length transformation
-  prm = list(alpha = p$alpha, sigma2_error = p$sigma2_error)
+  prm = list(alpha = p$alpha, sigma2_error = p$sigma2_error*2*p$alpha/p$sigma2)
   
   if (is.null(names(trait))) {
     warning("the data has no names, order assumed to be the same as tip labels in the tree.\n")
@@ -102,7 +103,8 @@ OU1d.loglik <- function(trait, phy, model=c("OUrandomRoot","OUfixedRoot"), param
   comp = list(vec11=tmp[2], y1=tmp[3], yy=tmp[4], X1=tmp[5:(4+d)],
               XX=matrix(tmp[(5+d):(ole-d)], d,d),Xy=tmp[(ole-d+1):ole],logd=tmp[1])
   
-  n2llh = as.numeric( n*log(2*pi) + comp$logd + comp$yy - 2*comp$Xy + comp$XX ) # -2 log-likelihood
+  n2llh = as.numeric( n*log(2*pi) + comp$logd + n*log(p$sigma2/2/p$alpha) + 
+                        2*p$alpha/p$sigma2*(comp$yy - 2*comp$Xy + comp$XX )) # -2 log-likelihood
   if (flag)
     n2llh = n2llh + p$alpha * 2 * sum(D)
   

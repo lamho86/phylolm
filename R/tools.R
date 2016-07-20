@@ -124,7 +124,7 @@ transf.branch.lengths <-
     times <- pruningwise.branching.times(phy) # has internal nodes only
     Tmax <- max(times)
     alpha = p$alpha
-    errEdge = errEdge*exp(2*alpha*D[des[externalEdge]]) # adjust measurement errors for OU models
+    errEdge = errEdge*exp(-2*alpha*D[des[externalEdge]]) # adjust measurement errors for OU models
     ## OUrandomRoot model	
     if (model=="OUrandomRoot") {
       distFromRoot <-  exp(-2*alpha*times) # fixit: divide by 2 alpha??

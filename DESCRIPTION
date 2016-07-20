@@ -15,3 +15,4 @@ URL: https://cran.r-project.org/package=phylolm
 Encoding: UTF-8
 Packaged: 2016-04-11
 NeedsCompilation: yes
+Suggests: testthat

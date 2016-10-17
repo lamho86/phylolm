@@ -9,7 +9,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
        lower.bound = NULL, upper.bound = NULL,
        starting.value = NULL, measurement_error = FALSE,
-       boot=0,full.matrix = TRUE ...)
+       boot=0,full.matrix = TRUE, ...)
 }
 
 \arguments{

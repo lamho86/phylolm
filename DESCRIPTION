@@ -1,6 +1,6 @@
 Package: phylolm
-Version: 2.4.2
-Date: 2016-04-11
+Version: 2.5
+Date: 2016-10-16
 Title: Phylogenetic Linear Regression
 Authors@R: c(person("Lam Si Tung", "Ho", role=c("aut", "cre"), email="lamho86@gmail.com"),
             person("Cecile", "Ane", role="aut"),
@@ -13,6 +13,6 @@ Description: Provides functions for fitting phylogenetic linear models and phylo
 License: GPL (>= 2) | file LICENSE
 URL: https://cran.r-project.org/package=phylolm
 Encoding: UTF-8
-Packaged: 2016-04-11
+Packaged: 2016-10-16
 NeedsCompilation: yes
 Suggests: testthat

@@ -67,6 +67,9 @@ OU1d.loglik <- function(trait, phy, model=c("OUrandomRoot","OUfixedRoot"), param
   dis = pruningwise.distFromRoot(phy)[1:n]
   Tmax = mean(dis)
   
+  ### Check if alpha is too big or too small
+  if ((prm$alpha < 1e-7/Tmax)||(prm$alpha > 50/Tmax)) return(-Inf)
+  
   y = trait
   if (model=="OUrandomRoot") {
     X = as.matrix(rep(p$optimal.value, n))
@@ -105,6 +108,8 @@ OU1d.loglik <- function(trait, phy, model=c("OUrandomRoot","OUfixedRoot"), param
   
   n2llh = as.numeric( n*log(2*pi) + comp$logd + n*log(p$sigma2/2/p$alpha) + 
                         2*p$alpha/p$sigma2*(comp$yy - 2*comp$Xy + comp$XX )) # -2 log-likelihood
+  if (n2llh < 0 ) n2llh = Inf # -2 log-likelihood has to be positive
+  
   if (flag)
     n2llh = n2llh + p$alpha * 2 * sum(D)
   

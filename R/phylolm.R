@@ -1,7 +1,7 @@
 phylolm <- function(formula, data=list(), phy, 
 	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
 	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, measurement_error = FALSE,
-	boot=0,full.matrix = TRUE, ...)
+	boot=0,full.matrix = TRUE, parallel = NULL, ...)
 {
 
   ## initialize	
@@ -187,7 +187,7 @@ phylolm <- function(formula, data=list(), phy,
       loglik(prm, y, X)$n2llh
     }
     # minus2llh: returns -loglik given 'alpha' and possibly measurement error
-    minus2llh <- function(logvalue) {
+    minus2llh <- function(logvalue, y) {
       if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate)
       else prm[[1]]=exp(logvalue[1]) # first element is the parameter of the model
       if ((measurement_error)&&(!(model %in% c("BM","trend")))){
@@ -217,7 +217,7 @@ phylolm <- function(formula, data=list(), phy,
         }
       }
       if (!(model %in% c("BM","trend")) && lower[1] != upper[1]){
-        opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, ...)
+        opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...)
         # next: get (co)variance parameters alpha/lambda... and m.e. variance into "prm"
         #       to be used later in loglik to get the estimated beta and sigma2.
         if (model == "EB") MLEvalue = as.numeric(opt$par[1]) else MLEvalue = as.numeric(exp(opt$par[1]))
@@ -292,7 +292,7 @@ phylolm <- function(formula, data=list(), phy,
 
   ## starting the bootstrap
   if (boot>0) {
-  # Turn off warnings
+    # Turn off warnings
     options(warn=-1)
     # simulate all bootstrap data sets
     simmodel=model
@@ -327,33 +327,33 @@ phylolm <- function(formula, data=list(), phy,
         colnumberalpha=colnumberalpha+1
     }
     if (!(model %in% c("BM","trend"))) { nparam_var=nparam_var+1}
-    # initialize bootmatrix: matrix with bootstrap estimated parameters
-    bootmatrix <- matrix(NA, boot, ncoeff + nparam_var)
-    colnames(bootmatrix) <- paste0("v",1:(ncoeff + nparam_var)) # temporary names, to initialize
-    colnames(bootmatrix)[1:ncoeff] <- names(results$coefficients)
-    colnames(bootmatrix)[ncoeff+1] <- "sigma2"
+    # initialize bootvector: vector with bootstrap estimated parameters
+    bootvector <- vector(length = ncoeff + nparam_var)
+    names(bootvector) <- paste0("v",1:(ncoeff + nparam_var)) # temporary names, to initialize
+    names(bootvector)[1:ncoeff] <- names(results$coefficients)
+    names(bootvector)[ncoeff+1] <- "sigma2"
     if (measurement_error){
-      colnames(bootmatrix)[ncoeff+2] <- "sigma2_error"
+      names(bootvector)[ncoeff+2] <- "sigma2_error"
     }
     if (!(model %in% c("BM","trend"))) {
-      colnames(bootmatrix)[colnumberalpha] <- names(prm)[1]
+      names(bootvector)[colnumberalpha] <- names(prm)[1]
     }
-
-    for (i in 1:boot){
-      y = booty[,i]
+    
+    # define a function that will calculate the boot statistics. It is only dependent on `y`
+    boot_model <- function(y) {
       # all other cases: first get 'prm' up-to-date.
       if (!(model %in% c("BM","trend")) && lower[1]==upper[1])
-        bootmatrix[i,colnumberalpha] = lower[1] # will be used later to update 'prm'
-
+        bootvector[colnumberalpha] = lower[1] # will be used later to update 'prm'
+      
       # otherwise: something needs to be optimized: m.e., alpha, or both.
       # below: storing 'standardized' estimated of m.e. variance in MLEsigma2_error. Rescaled later.
       if (!(model %in% c("BM","trend")) && lower[1] != upper[1]){
-        try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, ...),silent=TRUE)
+        try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...),silent=TRUE)
         if (!inherits(opt, 'try-error')){
           if (model == "EB") {
-            bootmatrix[i,colnumberalpha] = as.numeric(opt$par[1]); # will be used later to update 'prm'
+            bootvector[colnumberalpha] = as.numeric(opt$par[1]); # will be used later to update 'prm'
           } else {
-            bootmatrix[i,colnumberalpha] = as.numeric(exp(opt$par[1]));
+            bootvector[colnumberalpha] = as.numeric(exp(opt$par[1]));
           }
           if(measurement_error)  MLEsigma2_error = as.numeric(exp(opt$par[2]))
         } else {
@@ -365,9 +365,8 @@ phylolm <- function(formula, data=list(), phy,
           }
         }
       }
-
       if (!(model %in% c("BM","trend")))
-        prm[[1]] = bootmatrix[i,colnumberalpha] # update of 'prm'
+        prm[[1]] = bootvector[colnumberalpha] # update of 'prm'
       if (measurement_error){
         if (!(model %in% c("BM","trend"))) {
           prm[[2]] = MLEsigma2_error
@@ -375,14 +374,34 @@ phylolm <- function(formula, data=list(), phy,
           prm[[1]] = MLEsigma2_error
         }
       }
+      
       BMest = loglik(prm, y, X)
       if (model %in% OU)
-             BMest$sigma2hat = 2*prm[[1]] * BMest$sigma2hat # was "gamma" originally: sigma2 = 2 alpha gamma
+        BMest$sigma2hat = 2*prm[[1]] * BMest$sigma2hat # was "gamma" originally: sigma2 = 2 alpha gamma
       if (measurement_error)
-             bootmatrix[i,ncoeff+2] <- MLEsigma2_error * BMest$sigma2hat
-            bootmatrix[i,1:ncoeff] <- BMest$betahat
-            bootmatrix[i,ncoeff+1] <- BMest$sigma2hat
-    } # end of loop over bootstrap reps
+        bootvector[ncoeff+2] <- MLEsigma2_error * BMest$sigma2hat
+      bootvector[1:ncoeff] <- BMest$betahat
+      bootvector[ncoeff+1] <- BMest$sigma2hat
+      return(bootvector)
+    }
+    
+    ## set up cluster for parallel programming if needed
+    if (!is.null(parallel)) {
+      # create a cluster of type `parallel`, avoid using too many nodes
+      cl <- parallel::makeCluster(min(c(parallel::detectCores() - 1, boot)), parallel)
+      # load all data and variables on the nodes
+      parallel::clusterExport(cl, ls(), environment())
+      # guarantee safe exit
+      on.exit(parallel::stopCluster(cl))
+    }
+    
+    if (is.null(parallel)) {
+      bootmatrix <- lapply(as.data.frame(booty), boot_model)
+    } else {
+      bootmatrix <- parallel::parLapply(cl, as.data.frame(booty), boot_model)
+    }
+    bootmatrix <- do.call(rbind, bootmatrix)
+    
     # summarize bootstrap estimates
     ind.na <- which(is.na(bootmatrix[,1]))
     # indices of replicates that failed: phylolm had an error

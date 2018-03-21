@@ -9,7 +9,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
        lower.bound = NULL, upper.bound = NULL,
        starting.value = NULL, measurement_error = FALSE,
-       boot=0,full.matrix = TRUE, ...)
+       boot=0,full.matrix = TRUE,parallel=NULL, ...)
 }
 
 \arguments{
@@ -24,6 +24,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{measurement_error}{a logical value indicating whether there is measurement error \code{sigma2_error} (see Details).}
   \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
+  \item{parallel}{bootstrapping can be performed on a cluster by specifying the type of cluster (e.g. \code{"SOCK"})}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
 \details{This function uses an algorithm that is linear in the number of

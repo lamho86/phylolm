@@ -1,13 +1,14 @@
 Package: phylolm
-Version: 2.5
-Date: 2016-10-16
+Version: 2.6
+Date: 2018-03-21
 Title: Phylogenetic Linear Regression
 Authors@R: c(person("Lam Si Tung", "Ho", role=c("aut", "cre"), email="lamho86@gmail.com"),
             person("Cecile", "Ane", role="aut"),
 			person("Robert", "Lachlan", role="ctb"),
 			person("Kelsey", "Tarpinian",role="ctb"),
       person("Rachel", "Feldman",role="ctb"),
-      person("Qing", "Yu",role="ctb"))
+      person("Qing", "Yu",role="ctb"),
+      person("Wouter", "van der Bijl",role="ctb"))
 Depends: R (>= 3.0), ape
 Imports: parallel
 Description: Provides functions for fitting phylogenetic linear models and phylogenetic generalized linear models. The computation uses an algorithm that is linear in the number of tips in the tree. The package also provides functions for simulating continuous or binary traits along the tree. Other tools include functions to test the adequacy of a population tree.

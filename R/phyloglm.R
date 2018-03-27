@@ -1,6 +1,6 @@
 phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logistic_IG10","poisson_GEE"),
                      btol = 10, log.alpha.bound = 4, start.beta=NULL, start.alpha=NULL, 
-                     boot = 0, full.matrix = TRUE)
+                     boot = 0, full.matrix = TRUE, parallel = NULL)
 {
   ### initialize	
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")	
@@ -117,7 +117,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   ## BSE = SE for beta parameters, covBSE=variance-covariance matrix for estimated beta's.
   ## npllh = function to calculate negative penalized log likelihood
   
-  plogregfunct <- function(startB,startlL) {
+  plogregfunct <- function(startB,startlL,y) {
     convergeflag = 0
     clL = startlL # current -log(alpha)
     cB  = startB  # current beta coefficients
@@ -137,7 +137,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
       #if (counter==10) cat("  arg... counter reached 10...\n")
 
       ## optimize alpha conditional of beta:
-      opt <- optim(par = clL, fn = function(par){plogreglLfunct(cB,par)}, method = "L-BFGS-B")
+      opt <- optim(par = clL, fn = function(par){plogreglLfunct(cB,par,y)}, method = "L-BFGS-B")
       #opt<-subplex(par=clL, fn = function(par){plogreglLfunct(cB,par)}, control=optss)
       clL = as.numeric(opt$par)
       #cat("  optimized, new -log(alpha):",clL,"\n")
@@ -146,14 +146,14 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
         clL = (clL+oldlL)/2
 
       ## optimize beta conditional on alpha:
-      opt <- optim(par = cB, fn = function(par){plogregBfunct(par,clL)}, method = "L-BFGS-B", control = list(factr=1e12))
+      opt <- optim(par = cB, fn = function(par){plogregBfunct(par,clL,y)}, method = "L-BFGS-B", control = list(factr=1e12))
       #opt<-subplex(par=cB, fn = function(par){plogregBfunct(par,clL)}, control=optss)
       cB = as.vector(opt$par)
       #cat("  optimized, new beta:",cB,"\n")
       ttozero = as.numeric(opt$value)
       if (ttozero > 10^-2) {
         Btemp = rnorm(dk,startB,proposedBetaSD*pmax(abs(startB),rep(0.1,dk)))
-        opt <- optim(par = Btemp, fn = function(par){plogregBfunct(par,clL)}, method = "L-BFGS-B", control = list(factr=1e12))
+        opt <- optim(par = Btemp, fn = function(par){plogregBfunct(par,clL,y)}, method = "L-BFGS-B", control = list(factr=1e12))
         #opt<-subplex(par= Btemp, fn = function(par){plogregBfunct(par,clL)}, control=optss)
         Btemp = as.vector(opt$par)
         newttozero = as.numeric(opt$value)
@@ -172,7 +172,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
     return(list(B=cB,lL=clL,convergeflag = convergeflag))	
   }
 
-  plogregBfunct <- function(B,lL) {
+  plogregBfunct <- function(B,lL,y) {
     ## returns L2 norm of penalized score. We want this to be 0
     if (dk > 1) g = X%*%B else g = rep(1,n)*B
     if (any(abs(g) >= btol)) {
@@ -238,7 +238,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
     return(sum(tozero^2))
   }
   
-  plogreglLfunct <- function(B,lL) {
+  plogreglLfunct <- function(B,lL,y) {
     ## returns sum-of-square-type negative log-likelihood, which we want small:
     ## log|V|/2 + 1/2 (y-mu)' V^{-1} (y-mu).
     g = X%*%B # actually works in case dk=1.
@@ -267,7 +267,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   }
 
   ## function to calculate the penalized log-likelihood
-  npllh <- function(par) {
+  npllh <- function(par, y) {
     if (abs(par[dk+1] - log(Tmax)) >= log.alpha.bound) return(1e10)
     g = X %*% par[1:dk] # beta = first dk components of 'par'ameters
     if (any(abs(g) >= btol)) {
@@ -380,13 +380,13 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   ### Estimation
   if (method %in% c("logistic_MPLE","logistic_IG10")) {
     if (method == "logistic_IG10"){
-      plogreg = plogregfunct(startB,startlL)
+      plogreg = plogregfunct(startB,startlL,y)
       lL = plogreg$lL
       B = plogreg$B
       convergeflag = plogreg$convergeflag
     }
     if (method == "logistic_MPLE") {
-      opt <- optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12))
+      opt <- optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12), y=y)
       #optss<-list(reltol=.Machine$double.eps^0.5, maxit=100000, parscale=10)
       #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss)  	
       B  = opt$par[1:dk]
@@ -480,28 +480,45 @@ You can increase this bound by increasing 'btol'.")
 
     # analyze these bootstrapped data
     ncoeff = length(results$coefficients)
-    bootmatrix <- matrix(NA, boot, ncoeff + 1)
-    colnames(bootmatrix) <- c(names(results$coefficients), "alpha")
+    bootvector <- vector(length = ncoeff + 1)
+    names(bootvector) <- c(names(results$coefficients), "alpha")
     
-    for (i in 1:boot){
-      y = bootobject[,i]
+    boot_model <- function(y) {
       if (method == "logistic_IG10") {
-        bootfit <- try(plogregfunct(startB,startlL), silent=TRUE)
+        bootfit <- try(plogregfunct(startB,startlL,y), silent=TRUE)
         if (!inherits(bootfit, 'try-error')){
-          bootmatrix[i, 1:ncoeff] <- bootfit$B
-          bootmatrix[i, ncoeff + 1] <- 1/exp(bootfit$lL)
+          bootvector[1:ncoeff] <- bootfit$B
+          bootvector[ncoeff + 1] <- 1/exp(bootfit$lL)
         }
       }
       
       if (method == "logistic_MPLE") {
-        bootfit <- try(optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12)), 
+        bootfit <- try(optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12), y=y), 
                        silent=TRUE)
         if (!inherits(bootfit, 'try-error')){
-          bootmatrix[i, 1:ncoeff] <- bootfit$par[1:dk]
-          bootmatrix[i, ncoeff + 1] <- 1/exp(bootfit$par[dk+1])
+          bootvector[1:ncoeff] <- bootfit$par[1:dk]
+          bootvector[ncoeff + 1] <- 1/exp(bootfit$par[dk+1])
         }
       }
+      return(bootvector)
     }
+    
+    ## set up cluster for parallel programming if needed
+    if (!is.null(parallel)) {
+      # create a cluster of type `parallel`, avoid using too many nodes
+      cl <- parallel::makeCluster(min(c(parallel::detectCores() - 1, boot)), parallel)
+      # load all data and variables on the nodes
+      parallel::clusterExport(cl, ls(), environment())
+      # guarantee safe exit
+      on.exit(parallel::stopCluster(cl))
+    }
+    
+    if (is.null(parallel)) {
+      bootmatrix <- lapply(as.data.frame(bootobject), boot_model)
+    } else {
+      bootmatrix <- parallel::parLapply(cl, as.data.frame(bootobject), boot_model)
+    }
+    bootmatrix <- do.call(rbind, bootmatrix)
     
     # summarize bootstrap estimates
     ind.na <- which(is.na(bootmatrix[,1]))

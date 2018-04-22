@@ -106,11 +106,11 @@ phylolm <- function(formula, data=list(), phy,
     if (model=="delta") starting.value = starting.values.default[4]
     if (model=="EB") starting.value = starting.values.default[5]
   } else {
-    if (model %in% OU) starting.value = starting.values$alpha
-    if (model=="lambda") starting.value = starting.values$lambda
-    if (model=="kappa") starting.value = starting.values$kappa
-    if (model=="delta") starting.value = starting.values$delta
-    if (model=="EB") starting.value = starting.values$rate
+    if (model %in% OU) starting.value = starting.value$alpha
+    if (model=="lambda") starting.value = starting.value$lambda
+    if (model=="kappa") starting.value = starting.value$kappa
+    if (model=="delta") starting.value = starting.value$delta
+    if (model=="EB") starting.value = starting.value$rate
   }
 
   if (measurement_error) {

@@ -10,7 +10,7 @@
 phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10",
          "poisson_GEE"), btol = 10, log.alpha.bound = 4,
          start.beta=NULL, start.alpha=NULL,
-         boot = 0, full.matrix = TRUE, parallel = NULL)
+         boot = 0, full.matrix = TRUE)
 }
 
 \arguments{
@@ -25,10 +25,14 @@ phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10",
   \item{start.alpha}{(logistic regression only) starting values for alpha (phylogenetic correlation).}
   \item{boot}{number of independent bootstrap replicates, \code{0} means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and alpha) will be returned.}
-  \item{parallel}{bootstrapping can be performed on a cluster by specifying the type of cluster (e.g. \code{"SOCK"})}
 }
 \details{
-This function uses an algorithm that is linear in the number of tips in the tree.
+  This function uses an algorithm that is linear in the number of tips in the tree.
+
+  Bootstrapping can be parallelized using the \code{future} package on any future 
+  compatible back-end. For example, run \code{library(future); plan(multiprocess))}, 
+  after which bootstrapping will automatically occur in parallel. See 
+  \code{\link[future]{plan}} for options.
 }
 \value{
   \item{coefficients}{the named vector of coefficients.}

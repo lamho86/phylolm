@@ -1,7 +1,7 @@
 phylolm <- function(formula, data=list(), phy, 
 	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
 	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, measurement_error = FALSE,
-	boot=0,full.matrix = TRUE, parallel = NULL, ...)
+	boot=0,full.matrix = TRUE, ...)
 {
 
   ## initialize	
@@ -391,21 +391,7 @@ phylolm <- function(formula, data=list(), phy,
       return(bootvector)
     }
     
-    ## set up cluster for parallel programming if needed
-    if (!is.null(parallel)) {
-      # create a cluster of type `parallel`, avoid using too many nodes
-      cl <- parallel::makeCluster(min(c(parallel::detectCores() - 1, boot)), parallel)
-      # load all data and variables on the nodes
-      parallel::clusterExport(cl, ls(), environment())
-      # guarantee safe exit
-      on.exit(parallel::stopCluster(cl))
-    }
-    
-    if (is.null(parallel)) {
-      bootmatrix <- lapply(as.data.frame(booty), boot_model)
-    } else {
-      bootmatrix <- parallel::parLapply(cl, as.data.frame(booty), boot_model)
-    }
+    bootmatrix <- future.apply::future_lapply(as.data.frame(booty), boot_model)
     bootmatrix <- do.call(rbind, bootmatrix)
     
     # summarize bootstrap estimates

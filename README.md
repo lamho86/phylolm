@@ -16,7 +16,7 @@ Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck mod
 - Lam Si Tung Ho and Cécile Ané (2014). 
 A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. 
 *Systematic Biology* 63(3):397-408.
-[(link to pdf)](http://sysbio.oxfordjournals.org/cgi/reprint/syu005?ijkey=bIsHxa2dpqXCplc&keytype=ref)
+[(link to pdf)](https://academic.oup.com/sysbio/article/63/3/397/1649891)
 
 ### Installation
 Install `phylolm` from `github`:
@@ -36,3 +36,5 @@ devtools::install_github("lamho86/phylolm")
 - goodness-of-fit test of a population tree with the coalescent (from v.2.4)
 - allowing measurement errors in phylogenetic linear regression (from v2.4.1)
 - log likelihood of an one-dimensional Ornstein-Uhlenbeck model (from v2.5)
+- log likelihood of an one-dimensional Ornstein-Uhlenbeck model (from v2.5)
+- bootstrapping can be parallelized (from v2.6)

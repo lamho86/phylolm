@@ -421,6 +421,19 @@ phylolm <- function(formula, data=list(), phy,
     ### Turn on warnings
     options(warn=0)
   }
+  
+  ## R squared
+  RMS <- results$sigma2
+  RSSQ <- results$sigma2 * (n - d)
+  
+  xdummy <- matrix(rep(1, length(y)))
+  nullMod<- loglik(prm, y, xdummy)
+  NMS <- nullMod$sigma2hat
+  NSSQ <- nullMod$sigma2hat * (nullMod$n -1)
+  
+  result$r.squared <- (NSSQ - RSSQ) / NSSQ
+  result$adj.r.squared <- (NMS - RMS) / NMS
+    
   class(results) = "phylolm"
   return(results)
 }

@@ -427,13 +427,17 @@ phylolm <- function(formula, data=list(), phy,
   RSSQ <- results$sigma2 * (n - d)
   
   xdummy <- matrix(rep(1, length(y)))
+  # local variables used in loglik function
+  d <- ncol(xdummy)
+  ole <- 4 + 2*d + d*d # output length
   nullMod <- loglik(prm, y, xdummy)
-  NMS <- nullMod$sigma2hat
-  NSSQ <- nullMod$sigma2hat * (nullMod$n -1)
   
+  NMS <- nullMod$sigma2hat
+  NSSQ <- nullMod$sigma2hat * (n - 1)
+
   results$r.squared <- (NSSQ - RSSQ) / NSSQ
   results$adj.r.squared <- (NMS - RMS) / NMS
-    
+
   class(results) = "phylolm"
   return(results)
 }

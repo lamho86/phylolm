@@ -423,8 +423,14 @@ phylolm <- function(formula, data=list(), phy,
   }
   
   ## R squared
-  RMS <- results$sigma2
-  RSSQ <- results$sigma2 * (n - d)
+  if (model %in% OU) {
+    RMS <- results$sigma2 / 2/results$optpar * n/(n-d)
+    RSSQ <- results$sigma2 / 2/results$optpar * n
+    
+  } else {
+    RMS <- results$sigma2 * n/(n-d)
+    RSSQ <- results$sigma2 * n
+  }
   
   xdummy <- matrix(rep(1, length(y)))
   # local variables used in loglik function
@@ -432,8 +438,8 @@ phylolm <- function(formula, data=list(), phy,
   ole <- 4 + 2*d + d*d # output length
   nullMod <- loglik(prm, y, xdummy)
   
-  NMS <- nullMod$sigma2hat
-  NSSQ <- nullMod$sigma2hat * (n - 1)
+  NMS <- nullMod$sigma2hat * n/(n-1)
+  NSSQ <- nullMod$sigma2hat * n
 
   results$r.squared <- (NSSQ - RSSQ) / NSSQ
   results$adj.r.squared <- (NMS - RMS) / NMS

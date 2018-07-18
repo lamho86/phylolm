@@ -86,6 +86,8 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{bootnumFailed}{(\code{boot > 0} only) number of independent bootstrap replicates for which
   \code{phylolm} failed.}
   \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
+  \item{r.squared}{The r^2 for the model.}
+  \item{adj.r.squared}{The adjusted r^2 for the model.}
 }
 \references{
 Ho, L. S. T. and Ane, C. 2014.  "A linear-time algorithm for Gaussian and non-Gaussian trait evolution models". Systematic Biology \bold{63}(3):397-408.

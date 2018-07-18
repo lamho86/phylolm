@@ -421,6 +421,23 @@ phylolm <- function(formula, data=list(), phy,
     ### Turn on warnings
     options(warn=0)
   }
+  
+  ## R squared
+  RMS <- results$sigma2
+  RSSQ <- results$sigma2 * (n - d)
+  
+  xdummy <- matrix(rep(1, length(y)))
+  # local variables used in loglik function
+  d <- ncol(xdummy)
+  ole <- 4 + 2*d + d*d # output length
+  nullMod <- loglik(prm, y, xdummy)
+  
+  NMS <- nullMod$sigma2hat
+  NSSQ <- nullMod$sigma2hat * (n - 1)
+
+  results$r.squared <- (NSSQ - RSSQ) / NSSQ
+  results$adj.r.squared <- (NMS - RMS) / NMS
+
   class(results) = "phylolm"
   return(results)
 }
@@ -466,7 +483,8 @@ summary.phylolm <- function(object, ...) {
               optpar=object$optpar, sigma2_error = object$sigma2_error, logLik=object$logLik,
               df=object$p, aic=object$aic, model=object$model,
               mean.tip.height=object$mean.tip.height,
-              bootNrep = ifelse(object$boot>0, object$boot - object$bootnumFailed, 0))
+              bootNrep = ifelse(object$boot>0, object$boot - object$bootnumFailed, 0),
+              r.squared=object$r.squared, adj.r.squared=object$adj.r.squared)
   if (res$bootNrep>0) {
     res$bootmean = object$bootmean
     res$bootsd = object$bootsd
@@ -503,8 +521,12 @@ print.summary.phylolm <- function(x, digits = max(3, getOption("digits") - 3), .
 
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, P.values=TRUE, has.Pvalue=TRUE)
+  
+  cat("\nR-squared:", formatC(x$r.squared, digits = digits))
+  cat("\tAdjusted R-squared:", formatC(x$adj.r.squared, digits = digits), "\n")
+  
   if (!is.null(x$optpar)) {
-    cat("\nNote: p-values are conditional on ")
+    cat("\nNote: p-values and R-squared are conditional on ")
     if (x$model %in% c("OUrandomRoot","OUfixedRoot")) cat("alpha=",x$optpar,".",sep="")
     if (x$model %in% c("lambda","kappa","delta")) cat(x$model,"=",x$optpar,".",sep="")
     if (x$model=="EB") cat("rate=",x$optpar,".",sep="")

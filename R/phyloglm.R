@@ -36,7 +36,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   if (method %in% c("logistic_MPLE","logistic_IG10")) {    
     if ( sum(!(y %in% c(0,1))) )
       stop("The model by Ives and Garland requires a binary response (dependent variable).")
-    if (var(y)==0) stop("the response (dependent variable) is always 0 or always 1.")  
+    if (all(duplicated(y)[-1L])) stop("the response (dependent variable) is always 0 or always 1.")  
     
     btouch = 0
     proposedBetaSD = 0.05

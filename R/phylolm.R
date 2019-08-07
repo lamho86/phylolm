@@ -14,6 +14,36 @@ phylolm <- function(formula, data=list(), phy,
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")	
   tol = 1e-10	
+
+  mf = model.frame(formula=formula,data=data)
+  if (is.null(rownames(mf))) {
+   if (nrow(mf)!=length(phy$tip.label))
+      stop("number of rows in the data does not match the number of tips in the tree.")
+   warning("the data has no names, order assumed to be the same as tip labels in the tree.\n")
+  }
+  else { # the data frame has row names
+    taxa_without_data = setdiff(phy$tip.label, rownames(mf))
+    if (lenth(taxa_without_data)>0){
+      warning("will drop from the tree ", length(taxa_without_data), " taxa with missing data")
+      phy = drop.tip(phy, taxa_without_data)
+    }
+    if (length(phy$tip.label)<2)
+      stop("only 0 or 1 leaf with data on all variables: not enough.")
+    taxa_notin_tree = setdiff(rownames(mf), phy$tip.label)
+    if (length(taxa_notin_tree)>0){
+      warning(length(taxa_notin_tree), " taxa not in the tree: their data will be ignored")
+      mf = mf[-which(rownames(mf) %in% taxa_notin_tree),,drop=F]
+    }
+    # now we should have that: nrow(mf)==length(phy$tip.label)
+    ordr = match(phy$tip.label, rownames(mf))
+    if (any(is.na(ordr))) # should never happen given earlier checks
+      stop("data names do not match with the tip labels.\n")
+    mf = mf[ordr,,drop=F]
+  }
+  X = model.matrix(attr(mf, "terms"), data=mf)
+  y = model.response(mf)
+  d = ncol(X)
+
   phy = reorder(phy,"pruningwise")
   n <- length(phy$tip.label)
   N <- dim(phy$edge)[1]
@@ -21,26 +51,7 @@ phylolm <- function(formula, data=list(), phy,
   anc <- phy$edge[, 1]
   des <- phy$edge[, 2]
   externalEdge <- des<=n
-  mf = model.frame(formula=formula,data=data)
-  if (nrow(mf)!=length(phy$tip.label))
-    stop("number of rows in the data does not match the number of tips in the tree.")
-  if (is.null(rownames(mf))) {
-   warning("the data has no names, order assumed to be the same as tip labels in the tree.\n")
-   data.names = phy$tip.label 
-  }
-  else data.names = rownames(mf)
-  order = match(data.names, phy$tip.label)
-  if (sum(is.na(order))>0) {
-   warning("data names do not match with the tip labels.\n")
-   rownames(mf) = data.names
-  } else {
-   tmp = mf
-   rownames(mf) = phy$tip.label
-   mf[order,] = tmp[1:nrow(tmp),]
-  }
-  X = model.matrix(attr(mf, "terms"), data=mf)
-  y = model.response(mf)
-  d = ncol(X)
+
   OU = c("OUrandomRoot","OUfixedRoot")
   flag = 0 # flag and D are used for OU model if tree is not ultrametric:
   D = NULL #            for the generalized 3-point structure

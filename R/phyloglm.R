@@ -7,22 +7,29 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
   method = match.arg(method)
-  phy = reorder(phy,"pruningwise")
-  ## save original branch lengths for likelihood calculation
-  original.edge.length = phy$edge.length	
-  n <- length(phy$tip.label)
-  N <- dim(phy$edge)[1]
-  ROOT <- n + 1L
-  anc <- phy$edge[, 1]
-  des <- phy$edge[, 2]
+
   mf = model.frame(formula=formula,data=data)
-  if (nrow(mf)!=length(phy$tip.label))
-    stop("the number of rows in the data does not match the number of tips in the tree.")
-  if (is.null(rownames(mf)))
+  if (is.null(rownames(mf))){
+    if (nrow(mf)!=length(phy$tip.label))
+      stop("the number of rows in the data does not match the number of tips in the tree.")
     warning("the data has no names, order assumed to be the same as tip labels in the tree.\n")
-  else {
+  }
+  else { # the data frame has row names
+    taxa_without_data = setdiff(phy$tip.label, rownames(mf))
+    if (lenth(taxa_without_data)>0){
+      warning("will drop from the tree ", length(taxa_without_data), " taxa with missing data")
+      phy = drop.tip(phy, taxa_without_data)
+    }
+    if (length(phy$tip.label)<2)
+      stop("only 0 or 1 leaf with data on all variables: not enough.")
+    taxa_notin_tree = setdiff(rownames(mf), phy$tip.label)
+    if (length(taxa_notin_tree)>0){
+      warning(length(taxa_notin_tree), " taxa not in the tree: their data will be ignored")
+      mf = mf[-which(rownames(mf) %in% taxa_notin_tree),,drop=F]
+    }
+    # now we should have that: nrow(mf)==length(phy$tip.label)
     ordr = match(phy$tip.label,rownames(mf))
-    if (sum(is.na(ordr))>0)
+    if (any(is.na(ordr))) # should never happen given earlier checks
       stop("the row names in the data do not match the tip labels in the tree.\n")
     mf = mf[ordr,,drop=F]
   }
@@ -30,6 +37,14 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   y = model.response(mf);
   dk = ncol(X) # number of predictors, including intercept, = dimension of beta
   
+  phy = reorder(phy,"pruningwise")
+  ## save original branch lengths for likelihood calculation
+  original.edge.length = phy$edge.length
+  n <- length(phy$tip.label)
+  N <- dim(phy$edge)[1]
+  ROOT <- n + 1L
+  anc <- phy$edge[, 1]
+  des <- phy$edge[, 2]
   dis = pruningwise.distFromRoot(phy) # distance from root to each tip
   
   ## check condition and initialize for Logistic models

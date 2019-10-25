@@ -50,7 +50,8 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   ## check condition and initialize for Logistic models
   if (method %in% c("logistic_MPLE","logistic_IG10")) {    
     if ( sum(!(y %in% c(0,1))) )
-      stop("The model by Ives and Garland requires a binary response (dependent variable).")
+      stop("The model by Ives and Garland requires a binary (0 or 1) response (dependent variable).")
+    y = as.numeric(as.factor(y)) - 1 ### Make sure taht the reponse is now a binary numeric vector
     if (all(duplicated(y)[-1L])) stop("the response (dependent variable) is always 0 or always 1.")  
     
     btouch = 0

@@ -16,7 +16,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   }
   else { # the data frame has row names
     taxa_without_data = setdiff(phy$tip.label, rownames(mf))
-    if (lenth(taxa_without_data)>0){
+    if (length(taxa_without_data)>0){
       warning("will drop from the tree ", length(taxa_without_data), " taxa with missing data")
       phy = drop.tip(phy, taxa_without_data)
     }

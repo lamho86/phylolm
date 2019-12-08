@@ -410,13 +410,16 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
       convergeflag = opt$convergence
     }
     
+    alphaWarn = 0
+    
     if ((lL - log(Tmax) + 0.02) > log.alpha.bound) {
       warn = paste("the estimate of 'alpha' (",1/exp(lL),
                    ") reached the lower bound (",1/Tmax/exp(log.alpha.bound),
-                   ").\n This may reflect a flat likelihood at low alpha values near 0,\n",
+                   ").\n This may reflect a flat likelihood at low alpha values near the lower bound,\n",
                    " meaning that the phylogenetic correlation is estimated to be maximal\n",
                    " under the model in Ives and Garland (2010).", sep="")
       warning(warn)	
+      alphaWarn = 1
     }
     if ((lL - log(Tmax) - 0.02) < - log.alpha.bound) {
       warn = paste("the estimate of 'alpha' (",1/exp(lL),
@@ -424,6 +427,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
                    ").\n This may simply reflect a flat likelihood at large alpha values,\n",
                    " meaning that the phylogenetic correlation is estimated to be negligible.",sep="")
       warning(warn)	
+      alphaWarn = 2
     }
     if (btouch == 1) 
       warning("the boundary of the linear predictor has been reached during the optimization procedure.
@@ -465,6 +469,7 @@ You can increase this bound by increasing 'btol'.")
     results$logLik    = llh(results$fitted.values, results$alpha)
     results$penlogLik = results$logLik + log(det(as.matrix(plogregBSE$info)))/2
     results$aic       = -2*results$logLik + 2*(dk+1)
+    results$alphaWarn = alphaWarn
   }  
   
   if (method == "poisson_GEE") {

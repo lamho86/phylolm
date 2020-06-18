@@ -16,6 +16,8 @@ phylolm <- function(formula, data=list(), phy,
   tol = 1e-10	
 
   mf = model.frame(formula=formula,data=data)
+  
+  
   if (is.null(rownames(mf))) {
    if (nrow(mf)!=length(phy$tip.label))
       stop("number of rows in the data does not match the number of tips in the tree.")
@@ -28,7 +30,7 @@ phylolm <- function(formula, data=list(), phy,
       phy = drop.tip(phy, taxa_without_data)
     }
     if (length(phy$tip.label)<2)
-      stop("only 0 or 1 leaf with data on all variables: not enough.")
+      stop("names of the data do not match with tip labels.")
     taxa_notin_tree = setdiff(rownames(mf), phy$tip.label)
     if (length(taxa_notin_tree)>0){
       warning(length(taxa_notin_tree), " taxa not in the tree: their data will be ignored")

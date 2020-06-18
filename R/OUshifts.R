@@ -17,8 +17,10 @@ OUshifts <- function(y, phy, method=c("mbic","aic","bic","saic","sbic"), nmax, c
 	el <- phy$edge.length
 	v <- matrix(0,n + phy$Nnode,n)
 	
-	if (is.null(names(y))) 
+	if (is.null(names(y))) {
 	  warning("the data has no names, order assumed to be the same as tip labels in the tree.\n")
+	  names(y) = phy$tip.label  
+	}
 	else{
 	  ordr = match(phy$tip.label,names(y))
 	  if (sum(is.na(ordr))>0)

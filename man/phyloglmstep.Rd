@@ -48,7 +48,7 @@ phyloglmstep(formula, starting.formula = NULL, data=list(), phy,
    A phyloglm object correponding to the best model is returned.
 }
 
-\author{Lam Si Tung Ho and Cecile Ane}
+\author{Rutger Vos}
 \seealso{
 \code{\link{phyloglm}}.
 }
@@ -64,6 +64,7 @@ x2 = rTrait(phy=tre,model="BM",
             parameters=list(ancestral.state=0,sigma2=10))
 x3 = rTrait(phy=tre,model="BM",
             parameters=list(ancestral.state=0,sigma2=10))
+X = cbind(rep(1,60), x1)
 y = rbinTrait(n=1,phy=tre, beta=c(-1,0.5), alpha=1 ,X=X)
 dat = data.frame(trait=y[taxa],pred1=x1[taxa],pred2=x2[taxa],pred3=x3[taxa])
 fit = phyloglmstep(trait~pred1+pred2+pred3,data=dat,phy=tre,method="logistic_MPLE",direction="both")

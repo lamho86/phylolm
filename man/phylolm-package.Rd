@@ -14,7 +14,7 @@ Date: \tab 2019-01-01\cr
 License: \tab GPL (>= 2)\cr
 }
 }
-\author{Lam Si Tung Ho, Cecile Ane, Robert Lachlan, Kelsey Tarpinia, Rachel Feldman, Qing Yu, Wouter van der Bijl, Joan Maspons
+\author{Lam Si Tung Ho, Cecile Ane, Robert Lachlan, Kelsey Tarpinia, Rachel Feldman, Qing Yu, Wouter van der Bijl, Joan Maspons, Rutger Vos
 
 Maintainer: Lam Si Tung Ho <lamho86@gmail.com>
 }

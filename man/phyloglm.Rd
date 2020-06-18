@@ -70,7 +70,7 @@ for binary dependent variables".  Systematic Biology \bold{59}:9-26.
 
 Paradis E. and Claude J. 2002. "Analysis of Comparative Data Using Generalized Estimating Equations". Journal of Theoretical Biology \bold{218}:175-185.
 }
-\author{Lam Si Tung Ho, Robert Lachlan, Rachel Feldman and C?cile An?}
+\author{Lam Si Tung Ho, Robert Lachlan, Rachel Feldman and Cecile Ane}
 \note{
 The tip labels in the tree are matched to the data names (row names in
 the data frame). If no data frame is provided through the argument \code{data},

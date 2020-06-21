@@ -61,10 +61,6 @@ Zhang, N.R. and Siegmund, D.O. 2007. "A modified Bayes information
 
 \author{Lam Si Tung Ho}
 
-\seealso{
-\code{\link[surface]{runSurface}}, \code{\link[bayou]{bayou.mcmc}}.
-}
-
 \examples{
 data(flowerSize)
 data(flowerTree)

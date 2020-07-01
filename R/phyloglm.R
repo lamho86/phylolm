@@ -496,7 +496,11 @@ You can increase this bound by increasing 'btol'.")
     options(warn=-1)
     
     # simulate all bootstrap data sets
-    bootobject <- rbinTrait(n = boot, phy = phy, beta = results$coefficients,
+    if (dk == 1)
+      bootobject <- rbinTrait(n = boot, phy = phy, beta = results$coefficients,
+                              alpha = results$alpha, X = NULL, model = "LogReg")
+    else
+      bootobject <- rbinTrait(n = boot, phy = phy, beta = results$coefficients,
                             alpha = results$alpha, X = X, model = "LogReg")
 
     # analyze these bootstrapped data

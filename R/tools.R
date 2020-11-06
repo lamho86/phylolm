@@ -204,7 +204,7 @@ three.point.compute <-
     diagWeight = rep(1,n)
     names(diagWeight) = phy$tip.label
   } else {
-    if (any(abs(diagWeight) <= .Machine$double.eps ^ 0.8))
+    if (any(abs(diagWeight) == 0))
       stop ("diagonal weights need to be non-zero.")
   }
   flag = 0

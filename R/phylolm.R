@@ -94,44 +94,41 @@ phylolm <- function(formula, data=list(), phy,
   starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax,1) 
   names(starting.values.default) = c("alpha","lambda","kappa","delta","rate","sigma2_error")
 
+  ## Utility functions to get values
+  get_value_param <- function(values, values.default, param) {
+    if (length(values) == 1 && is.null(names(values))) {
+      # For backward compatibility : if an unnamed single value is given, assume that it is for "optpar", i.e. the parameter to optimize that is not sigma2_error.
+      if (param == "sigma2_error") {
+        val <- NULL
+      } else {
+        val <- values
+      }
+    } else {
+      val <- values[[param]]
+    }
+    # If no one named "param" in the list of values (val = NULL), return the default.
+    if (is.null(val)) return(values.default[[param]])
+    return(val)
+  }
+  get_value_model <- function(values, values.default, model, measurement_error) {
+    if (model != "BM") {
+      if (model %in% OU) param <- "alpha"
+      if (model == "lambda") param <- "lambda"
+      if (model == "kappa") param <- "kappa"
+      if (model == "delta") param <- "delta"
+      if (model == "EB") param <- "rate"
+      vals <- get_value_param(values, values.default, param)
+    } else {
+      vals <- NULL
+    }
+    if (measurement_error) vals <- c(vals, get_value_param(values, values.default, "sigma2_error"))
+    return(vals)
+  }
+
   ## User defined bounds and starting values
-  if (is.null(lower.bound)) {
-    if (model %in% OU) 
-      lower.bound = bounds.default[1,1]
-    if (model=="lambda") lower.bound = bounds.default[2,1]
-    if (model=="kappa") lower.bound = bounds.default[3,1]
-    if (model=="delta") lower.bound = bounds.default[4,1]
-    if (model=="EB") lower.bound = bounds.default[5,1]
-  }
-  if (is.null(upper.bound)) {
-    if (model %in% OU) 
-      upper.bound = bounds.default[1,2]
-    if (model=="lambda") upper.bound = bounds.default[2,2]
-    if (model=="kappa") upper.bound = bounds.default[3,2]
-    if (model=="delta") upper.bound = bounds.default[4,2]
-    if (model=="EB") upper.bound = bounds.default[5,2]
-  }
-  if (is.null(starting.value)) {
-    if (model %in% OU) 
-      starting.value = starting.values.default[1]
-    if (model=="lambda") starting.value = starting.values.default[2]
-    if (model=="kappa") starting.value = starting.values.default[3]
-    if (model=="delta") starting.value = starting.values.default[4]
-    if (model=="EB") starting.value = starting.values.default[5]
-  } else {
-    if (model %in% OU) starting.value = starting.value$alpha
-    if (model=="lambda") starting.value = starting.value$lambda
-    if (model=="kappa") starting.value = starting.value$kappa
-    if (model=="delta") starting.value = starting.value$delta
-    if (model=="EB") starting.value = starting.value$rate
-  }
-
-  if (measurement_error) {
-    lower.bound = c(lower.bound, bounds.default[6,1])
-    upper.bound = c(upper.bound, bounds.default[6,2])
-    starting.value = c(starting.value, starting.values.default[6])
-  }
-
+  lower.bound <- get_value_model(lower.bound, bounds.default[ , 1], model, measurement_error)
+  upper.bound <- get_value_model(upper.bound, bounds.default[ , 2], model, measurement_error)
+  starting.value <- get_value_model(starting.value, starting.values.default, model, measurement_error)
 
   ## preparing for general use of "parameter" for branch length transformation
   prm = list(myname = starting.value[1])

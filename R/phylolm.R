@@ -46,6 +46,12 @@ phylolm <- function(formula, data=list(), phy,
   y = model.response(mf)
   d = ncol(X)
 
+  ## Check that response is a vector
+  if (is.matrix(y) && ncol(y) > 1) {
+    stop(paste0("The response vector y in the formula is multivariate (it has several columns).\n",
+                "  Please fit each column one by one: 'phylolm' can only handle a simple (univariate) response vector y."))
+  }
+
   phy = reorder(phy,"pruningwise")
   n <- length(phy$tip.label)
   N <- dim(phy$edge)[1]

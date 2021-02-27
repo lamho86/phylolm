@@ -618,3 +618,8 @@ plot.phylolm <-function(x, ...){
   plot(x$y, fitted(x), xlab = "Observed value", ylab = "Fitted value", ...)
 }
 ################################################
+################################################
+confint.phylolm <- function(object, parm, level = 0.95, ...){
+  object$df.residuals <- object$n - object$d
+  return(stats::confint.lm(object, parm, level, ...))
+}

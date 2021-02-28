@@ -1,5 +1,5 @@
 ################################################
-### Stepwise selection for phylolm using AIC
+### Stepwise selection for phyloglm using AIC
 ################################################
 
 phyloglmstep <- function(formula, starting.formula = NULL, data=list(), phy, 

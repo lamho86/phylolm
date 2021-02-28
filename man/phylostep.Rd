@@ -7,7 +7,7 @@
   models, using the criterion -2*log-likelihood + k*npar, where npar is
   the number of estimated parameters and k=2 for the usual AIC.}
 \usage{
-phylostep(formula, starting.formula = NULL, data = list(), 
+phylostep(formula, starting.formula = NULL, keeping.formula = NULL, data = list(), 
        phy, model = c("BM", "OUrandomRoot","OUfixedRoot", 
        "lambda", "kappa", "delta", "EB", "trend"),
        direction = c("both", "backward", "forward"), trace = 2,
@@ -18,6 +18,7 @@ phylostep(formula, starting.formula = NULL, data = list(),
 \arguments{
   \item{formula}{formula of the full model.}
   \item{starting.formula}{optional formula of the starting model.}
+  \item{keeping.formula}{optional formula of the keeping model. Covariates of the keeping model are always included in the model.}
   \item{data}{a data frame containing variables in the model. If not
   found in \code{data}, the variables are taken from current environment.}
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}

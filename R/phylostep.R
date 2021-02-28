@@ -2,7 +2,7 @@
 ### Stepwise selection for phylolm using AIC
 ################################################
 
-phylostep <- function(formula, starting.formula = NULL, data=list(), phy, 
+phylostep <- function(formula, starting.formula = NULL, keeping.formula = NULL, data=list(), phy, 
                     model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
                     direction = c("both", "backward", "forward"), trace = 2,
                     lower.bound=NULL, upper.bound=NULL, starting.value=NULL,
@@ -45,12 +45,24 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
     fit.current = fit.full
   }
   
+  if (!is.null(keeping.formula)) {
+    covariates.keep = attr(terms(keeping.formula), "term.labels")
+    position = match(covariates.keep,covariates)
+    if (any(is.na(position))) stop("The keeping model is not a submodel of the full model.")
+  }
+  
+  
   if (!is.null(starting.formula)) {
     fit.current = phylolm(starting.formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
     covariates.current = attr(terms(starting.formula), "term.labels")
     plm.current = rep(0,p)
     position = match(covariates.current,covariates)
     if (any(is.na(position))) stop("The starting model is not a submodel of the full model.")
+    if (!is.null(keeping.formula)) {
+      position = match(covariates.keep,covariates.current)
+      if (any(is.na(position))) stop("The keeping model is not a submodel of the starting model.")
+    }
+    
     plm.current[position] = 1
   }
   
@@ -82,6 +94,11 @@ phylostep <- function(formula, starting.formula = NULL, data=list(), phy,
           &&(covariates[i] %in% terms.drop)) {
         plm.propose[i] = 0  # remove i-th covariate
         do.update = TRUE
+        if (!is.null(keeping.formula))
+            if (covariates[i] %in% covariates.keep) {
+              plm.propose[i] = 1  # put back i-th covariate
+              do.update = FALSE # we want to keep this covariate in the model
+            }
       }
       if ((plm.current[i]==0)&&(direction %in% c("both", "forward"))
           &&(covariates[i] %in% terms.add)) {

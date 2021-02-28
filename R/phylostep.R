@@ -34,6 +34,13 @@ phylostep <- function(formula, starting.formula = NULL, keeping.formula = NULL, 
                    lower.bound, upper.bound, starting.value, ...))
   }
   
+  # check keeping formula
+  if (!is.null(keeping.formula)) {
+    covariates.keep = attr(terms(keeping.formula), "term.labels")
+    position = match(covariates.keep,covariates)
+    if (any(is.na(position))) stop("The keeping model is not a submodel of the full model.")
+  }
+  
   ## plm.current is a binary vector of length p
   ## where 0 at i-th position means excluding i-th covariate
   
@@ -45,13 +52,7 @@ phylostep <- function(formula, starting.formula = NULL, keeping.formula = NULL, 
     fit.current = fit.full
   }
   
-  if (!is.null(keeping.formula)) {
-    covariates.keep = attr(terms(keeping.formula), "term.labels")
-    position = match(covariates.keep,covariates)
-    if (any(is.na(position))) stop("The keeping model is not a submodel of the full model.")
-  }
-  
-  
+  # check starting formula
   if (!is.null(starting.formula)) {
     fit.current = phylolm(starting.formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
     covariates.current = attr(terms(starting.formula), "term.labels")
@@ -61,10 +62,14 @@ phylostep <- function(formula, starting.formula = NULL, keeping.formula = NULL, 
     if (!is.null(keeping.formula)) {
       position = match(covariates.keep,covariates.current)
       if (any(is.na(position))) stop("The keeping model is not a submodel of the starting model.")
-    }
-    
+    } 
     plm.current[position] = 1
-  }
+  } else 
+    if (direction == "forward") {
+      fit.current = phylolm(keeping.formula, data, phy, model, lower.bound, upper.bound, starting.value, ...)
+      position = match(covariates.keep,covariates)
+      plm.current[position] = 1
+    }
   
   if (trace>0) {
     cat("----------\n")

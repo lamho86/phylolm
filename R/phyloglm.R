@@ -1,8 +1,10 @@
-phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logistic_IG10","poisson_GEE"),
+phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logistic_IG10", "logistic_MLE", "poisson_GEE"),
                      btol = 10, log.alpha.bound = 4, start.beta=NULL, start.alpha=NULL, 
                      boot = 0, full.matrix = TRUE)
 {
   ### initialize	
+  logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
+  
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")	
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
@@ -48,7 +50,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   dis = pruningwise.distFromRoot(phy) # distance from root to each tip
   
   ## check condition and initialize for Logistic models
-  if (method %in% c("logistic_MPLE","logistic_IG10")) {    
+  if (method %in% logistic) {    
     if ( sum(!(y %in% c(0,1))) )
       stop("The model by Ives and Garland requires a binary (0 or 1) response (dependent variable).")
     y = as.numeric(as.factor(y)) - 1 ### Make sure taht the reponse is now a binary numeric vector
@@ -90,7 +92,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
     return(list(edge.length,root.edge,diag))
   }
     
-  ## transform branch lengths fot Logistic models
+  ## transform branch lengths for Logistic models
   transf.branch.lengths <- function(B,lL) {
     if (dk > 1) g = X%*%B else g = rep(1,n)*B
     mu = as.vector(1/(1+exp(-g)))
@@ -309,6 +311,21 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
        as.integer(as.vector(y)), as.double(as.vector(mu)),as.integer(dk), as.double(alpha),
        loglik=double(1))$loglik
   }
+  nllh <- function(par, y) {
+    if (abs(par[dk+1] - log(Tmax)) >= log.alpha.bound) return(1e10)
+    g = X %*% par[1:dk] # beta = first dk components of 'par'ameters
+    if (any(abs(g) >= btol)) {
+      btouch <<- 1
+      return(1e10)
+    }
+    mu = as.vector(1/(1+exp(-g)))
+    
+    llk <- .C("logistreglikelihood", as.integer(N),as.integer(n),as.integer(phy$Nnode),
+              as.integer(ROOT), as.double(original.edge.length), as.integer(des), as.integer(anc),
+              as.integer(as.vector(y)), as.double(as.vector(mu)),as.integer(dk), as.double(exp(-par[dk+1])),
+              loglik=double(1))$loglik
+    -llk
+  }
 	
   ## GEE method for poisson_GEE regression
   ## Iterate: beta_{t+1} = beta_t + I^{-1}[(AX)'R^{-1}(Y-mu)]
@@ -346,7 +363,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
 	
   ## Starting values
   if (is.null(start.beta)) {
-    if (method %in% c("logistic_MPLE","logistic_IG10")) {    
+    if (method %in% logistic) {    
       fit = glm(y~X-1,family=binomial)
       ## logistf(y~X-1) for regular logistic regression with 
       ## Firth correction. But doesn't work with intercept only.
@@ -368,14 +385,14 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   } else {
       if (length(start.beta)!=dk)
         stop(paste("start.beta shoudl be of length",dk))
-      if (method %in% c("logistic_MPLE","logistic_IG10")) {
+      if (method %in% logistic) {
         startB = as.vector(start.beta)
       if (any(abs(X%*%startB) >= btol))
         stop("With these starting beta values, some linear predictors are beyond 'btol'.\n  Increase btol or choose new starting values for beta.")
       }  
     }
   
-  if (method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (method %in% logistic) {
     if (is.null(start.alpha))
       startlL = log(Tmax) # i.e. alpha = 1/Tmax
     else {
@@ -394,7 +411,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   
   
   ### Estimation
-  if (method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (method %in% logistic) {
     if (method == "logistic_IG10"){
       plogreg = plogregfunct(startB,startlL,y)
       lL = plogreg$lL
@@ -403,6 +420,14 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
     }
     if (method == "logistic_MPLE") {
       opt <- optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12), y=y)
+      #optss<-list(reltol=.Machine$double.eps^0.5, maxit=100000, parscale=10)
+      #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss)  	
+      B  = opt$par[1:dk]
+      lL = opt$par[dk+1]
+      convergeflag = opt$convergence
+    }
+    if (method == "logistic_MLE") {
+      opt <- optim(par=c(startB,startlL), fn=nllh, method="L-BFGS-B", control=list(factr=1e12), y=y)
       #optss<-list(reltol=.Machine$double.eps^0.5, maxit=100000, parscale=10)
       #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss)  	
       B  = opt$par[1:dk]
@@ -461,7 +486,7 @@ You can increase this bound by increasing 'btol'.")
   results$linear.predictors = as.vector(X %*% results$coefficients)
   names(results$linear.predictors) = names(y)
   
-  if (method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (method %in% logistic) {
     if (max(abs(results$linear.predictors)) + 0.01 > btol)
       warning("the linear predictor reaches its bound for one (or more) tip.")  
     results$fitted.values = as.vector(1/(1+exp(-results$linear.predictors)))
@@ -490,7 +515,7 @@ You can increase this bound by increasing 'btol'.")
   results$X = X
   results$boot = boot
   
-  if ((boot>0)&&(method %in% c("logistic_MPLE","logistic_IG10"))) {
+  if ((boot>0)&&(method %in% logistic)) {
     
     # Turn off warnings
     options(warn=-1)
@@ -519,6 +544,15 @@ You can increase this bound by increasing 'btol'.")
       
       if (method == "logistic_MPLE") {
         bootfit <- try(optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12), y=y), 
+                       silent=TRUE)
+        if (!inherits(bootfit, 'try-error')){
+          bootvector[1:ncoeff] <- bootfit$par[1:dk]
+          bootvector[ncoeff + 1] <- 1/exp(bootfit$par[dk+1])
+        }
+      }
+      
+      if (method == "logistic_MLE") {
+        bootfit <- try(optim(par=c(startB,startlL), fn=nllh, method="L-BFGS-B", control=list(factr=1e12), y=y), 
                        silent=TRUE)
         if (!inherits(bootfit, 'try-error')){
           bootvector[1:ncoeff] <- bootfit$par[1:dk]
@@ -564,9 +598,10 @@ You can increase this bound by increasing 'btol'.")
 
 ################################################
 print.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), ...){
+  logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
   cat("Call:\n")
   print(x$call)
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (x$method %in% logistic) {
     aiclogLik = c(x$aic,x$logLik,x$penlogLik)
     names(aiclogLik) = c("AIC","logLik","Pen.logLik")
     print(aiclogLik, digits = digits)  
@@ -574,13 +609,15 @@ print.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), ...){
   cat("\nParameter estimate(s) from ")
   if (x$method=="logistic_IG10") cat("GEE approximation:\n")
   if (x$method=="logistic_MPLE") cat("MPLE:\n")
+  if (x$method=="logistic_MLE") cat("MLE:\n")
   if (x$method=="poisson_GEE") cat("poisson_GEE:\n")
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) cat("alpha:",x$alpha,"\n")
+  if (x$method %in% logistic) cat("alpha:",x$alpha,"\n")
   cat("\nCoefficients:\n")
   print(x$coefficients)
 }
 ################################################
 summary.phyloglm <- function(object, ...) {
+  logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
   se <- object$sd
   zval <- coef(object) / se
   if (object$boot == 0) 
@@ -592,7 +629,7 @@ summary.phyloglm <- function(object, ...) {
                  upperbootCI = object$bootconfint95[2,1:object$d],
                  p.value = 2*pnorm(-abs(zval)))
 
-  if (object$method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (object$method %in% logistic) {
     res <- list(call=object$call,
                 coefficients=TAB,
                 residuals = object$residuals,
@@ -626,17 +663,18 @@ summary.phyloglm <- function(object, ...) {
 }
 ################################################
 print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), ...){
+  logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
   cat("\nCall:\n")
   print(x$call)
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (x$method %in% logistic) {
     aiclogLik = c(x$aic,x$logLik,x$penlogLik)
     names(aiclogLik) = c("AIC","logLik","Pen.logLik")
     print(aiclogLik, digits = digits)  
   }  
   cat("\nMethod:",x$method)
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) cat("\nMean tip height:",x$mean.tip.height)
+  if (x$method %in% logistic) cat("\nMean tip height:",x$mean.tip.height)
   cat("\nParameter estimate(s):\n")
-  if (x$method %in% c("logistic_MPLE","logistic_IG10")) {
+  if (x$method %in% logistic) {
     cat("alpha:",x$alpha,"\n")
     if (x$bootNrep > 0) {
       cat("      bootstrap mean: ",exp(x$bootmeanAlog)," (on log scale, then back transformed)","\n",sep="")
@@ -647,7 +685,7 @@ print.summary.phyloglm <- function(x, digits = max(3, getOption("digits") - 3), 
   if (x$method == "poisson_GEE") cat("scale:",x$scale,"\n")
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, P.values=TRUE, has.Pvalue=TRUE)
-  if (x$method %in% c("logistic_MPLE","logistic_IG10"))
+  if (x$method %in% logistic)
     cat("\nNote: Wald-type p-values for coefficients, conditional on alpha=",
       x$alpha,"\n",sep="")
   if (x$method == "poisson_GEE") 

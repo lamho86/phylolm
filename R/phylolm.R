@@ -244,15 +244,6 @@ phylolm <- function(formula, data=list(), phy,
         #       to be used later in loglik to get the estimated beta and sigma2.
         if (model == "EB") MLEvalue = as.numeric(opt$par[1]) else MLEvalue = as.numeric(exp(opt$par[1]))
         prm[[1]] = MLEvalue
-        if ((isTRUE(all.equal(MLEvalue,lower[1], tol=tol)))||(isTRUE(all.equal(MLEvalue,upper[1],tol=tol)))) {
-          matchbound = 1
-          if ((model %in% c("lambda","kappa"))&&(MLEvalue == 1)) matchbound=0
-          if ((model == "EB")&&(MLEvalue == 0)) matchbound=0
-          if (matchbound)
-            warning(paste("the estimation of", names(prm)[1],
-                          'matches the upper/lower bound for this parameter.
-                          You may change the bounds using options "upper.bound" and "lower.bound".\n'))
-        }
         if (measurement_error){
             MLEsigma2_error = as.numeric(exp(opt$par[2]))
             prm[[2]] = MLEsigma2_error
@@ -272,6 +263,28 @@ phylolm <- function(formula, data=list(), phy,
           } else {
             prm[[2]] = MLEsigma2_error
           }
+      }
+      ## Bound
+      matchbound <- NULL
+      # param
+      if ((isTRUE(all.equal(prm[[1]], lower[1], tol=tol)))
+          || (isTRUE(all.equal(prm[[1]], upper[1],tol=tol)))) {
+        matchbound <- c(matchbound, 1)
+        if ((model %in% c("lambda","kappa"))&&(prm[[1]] == 1)) matchbound <- NULL
+        if ((model == "EB")&&(prm[[1]] == 0)) matchbound <- NULL
+      }
+      # error
+      if (length(lower) > 1 
+          && (isTRUE(all.equal(prm[[2]], lower[2], tol=tol))
+              || isTRUE(all.equal(prm[[2]], upper[2],tol=tol)))) {
+        matchbound <- c(matchbound, 2)
+      }
+      if (length(matchbound) > 0) {
+        for (i in matchbound) {
+          warning(paste("the estimation of", names(prm)[i],
+                        'matches the upper/lower bound for this parameter.
+                          You may change the bounds using options "upper.bound" and "lower.bound".\n'))
+        }
       }
       # estimate beta and sigma2:
       BMest = loglik(prm, y, X)

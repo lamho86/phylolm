@@ -30,46 +30,61 @@ test_that("Setting upper, lower and starting values", {
   expect_equal(fit$optpar, 0.5)
 
   ## Fit - bounds
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="kappa",
-                starting.value = list(kappa = 0.5),
-                upper.bound = list(kappa = 2),
-                lower.bound = list(kappa = 0.2))
-
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="kappa",
+                                starting.value = list(kappa = 0.5),
+                                upper.bound = list(kappa = 2),
+                                lower.bound = list(kappa = 0.2)),
+                        "the estimation of kappa matches the upper/lower bound for this parameter")
+  
   expect_true(fit$optpar <= 2)
   expect_true(fit$optpar >= 0.2)
 
   ## Fit - bounds default
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="kappa",
-                starting.value = list(kappa = 0.5),
-                upper.bound = list(kappa = 2))
-
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="kappa",
+                                starting.value = list(kappa = 0.5),
+                                upper.bound = list(kappa = 2)),
+                        "the estimation of kappa matches the upper/lower bound for this parameter")
+  
   expect_true(fit$optpar <= 2)
   expect_true(fit$optpar >= 10^{-6}) ## default lower bound
 
   ## Fit - bounds - measurement error
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="BM", measurement_error = TRUE,
-                starting.value = list(sigma2_error = 0.5),
-                upper.bound = list(sigma2_error = 0.51),
-                lower.bound = list(sigma2_error = 0.49))
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="BM", measurement_error = TRUE,
+                                starting.value = list(sigma2_error = 0.5),
+                                upper.bound = list(sigma2_error = 0.51),
+                                lower.bound = list(sigma2_error = 0.49)),
+                        "the estimation of sigma2_error matches the upper/lower bound for this parameter")
 
   expect_true(fit$sigma2_error <= 0.51 * fit$sigma2)
   expect_true(fit$sigma2_error >= 0.49 * fit$sigma2)
 
   ## Fit - bounds - measurement error
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
-                starting.value = list(alpha = 1, sigma2_error = 0.5),
-                upper.bound = list(alpha = 1, sigma2_error = 0.51),
-                lower.bound = list(alpha = 1, sigma2_error = 0.49))
+  expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
+                         starting.value = list(alpha = 1, sigma2_error = 0.5),
+                         upper.bound = list(alpha = 1, sigma2_error = 0.51),
+                         lower.bound = list(alpha = 1, sigma2_error = 0.49)),
+                 "the estimation of alpha matches the upper/lower bound for this parameter")
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
+                                starting.value = list(alpha = 1, sigma2_error = 0.5),
+                                upper.bound = list(alpha = 1, sigma2_error = 0.51),
+                                lower.bound = list(alpha = 1, sigma2_error = 0.49)),
+                        "the estimation of sigma2_error matches the upper/lower bound for this parameter")
 
   expect_true(fit$sigma2_error <= 0.51 * fit$sigma2 / (2 * 1))
   expect_true(fit$sigma2_error >= 0.49 * fit$sigma2 / (2 * 1))
   expect_equal(fit$optpar, 1)
 
   ## Fit - bounds - measurement error
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
-                starting.value = list(alpha = 0.5, sigma2_error = 0.5),
-                upper.bound = list(alpha = 0.6, sigma2_error = 0.55),
-                lower.bound = list(alpha = 0.4, sigma2_error = 0.49))
+  expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
+                         starting.value = list(alpha = 0.5, sigma2_error = 0.5),
+                         upper.bound = list(alpha = 0.6, sigma2_error = 0.55),
+                         lower.bound = list(alpha = 0.4, sigma2_error = 0.49)),
+                 "the estimation of alpha matches the upper/lower bound for this parameter")
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="OUfixedRoot", measurement_error = TRUE,
+                                starting.value = list(alpha = 0.5, sigma2_error = 0.5),
+                                upper.bound = list(alpha = 0.6, sigma2_error = 0.55),
+                                lower.bound = list(alpha = 0.4, sigma2_error = 0.49)),
+                        "the estimation of sigma2_error matches the upper/lower bound for this parameter")
 
   expect_true(fit$sigma2_error <= 0.55 * fit$sigma2 / (2 * fit$optpar))
   expect_true(fit$sigma2_error >= 0.49 * fit$sigma2 / (2 * fit$optpar))
@@ -88,10 +103,11 @@ test_that("Setting upper, lower and starting values", {
   expect_true(fit$optpar >= 0.4)
 
   ## Fit - default bounds - measurement error - unnamed length one (backward compatibility)
-  fit = phylolm(trait~pred,data=dat,phy=tre,model="OUrandomRoot", measurement_error = TRUE,
-                starting.value = 0.5,
-                upper.bound = 0.5,
-                lower.bound = 0.5)
+  fit <- expect_warning(phylolm(trait~pred,data=dat,phy=tre,model="OUrandomRoot", measurement_error = TRUE,
+                                starting.value = 0.5,
+                                upper.bound = 0.5,
+                                lower.bound = 0.5),
+                        "the estimation of alpha matches the upper/lower bound for this parameter")
 
   expect_true(fit$sigma2_error <= 10^{16} * fit$sigma2 / (2 * fit$optpar))
   expect_true(fit$sigma2_error >= 10^{-16} * fit$sigma2 / (2 * fit$optpar))

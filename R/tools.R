@@ -185,7 +185,7 @@ transf.branch.lengths <-
 
 three.point.compute <-
   function(phy, P, Q = NULL, diagWeight = NULL, 
-           check.pruningwise = TRUE, check.names = TRUE) 
+           check.pruningwise = TRUE, check.names = TRUE, check.precision = TRUE) 
 {
   ## For an extra tip Variance, like diagonal measurement error E:
   ## V = DVoD + E = D Vn D with Vn = Vo + D^{-1}ED^{-1} still from tree.
@@ -204,7 +204,7 @@ three.point.compute <-
     diagWeight = rep(1,n)
     names(diagWeight) = phy$tip.label
   } else {
-    if (any(abs(diagWeight) <= .Machine$double.eps ^ 0.8))
+    if (any(abs(diagWeight) <= .Machine$double.eps ^ 0.8) & check.precision)
       stop ("diagonal weights need to be non-zero.")
   }
   flag = 0

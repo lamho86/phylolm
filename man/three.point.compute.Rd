@@ -6,7 +6,7 @@
     V)} of a (generalized) three-point structured matrix.}
 \usage{
 three.point.compute(phy, P, Q = NULL, diagWeight = NULL, 
-            check.pruningwise = TRUE, check.names = TRUE)
+            check.pruningwise = TRUE, check.names = TRUE, check.precision = TRUE)
 }
 \arguments{
   \item{phy}{a rooted phylogenetic tree of type phylo with branch
@@ -20,6 +20,7 @@ three.point.compute(phy, P, Q = NULL, diagWeight = NULL,
   \item{check.names}{if FALSE, the row names of \code{P}, \code{Q}, and
     the names of \code{diagWeight} are assumed to be the same as the
     labels of the tips in the tree.} 
+  \item{check.precision}{if FALSE, diagWeight will be allowed to be below Machine epsilon. Recommended to remain TRUE.} 
 }
 \value{
 	\item{vec11}{\eqn{1'V^{-1}1}.}
@@ -31,7 +32,7 @@ three.point.compute(phy, P, Q = NULL, diagWeight = NULL,
 	\item{logd}{\eqn{\log(\det V)}{log(det V)}.}
 }
 \references{
-Ho, L. S. T. and Ané, C. (2014). "A linear-time algorithm for Gaussian and
+Ho, L. S. T. and An?, C. (2014). "A linear-time algorithm for Gaussian and
 non-Gaussian trait evolution models". Systematic Biology \bold{63}(3):397-408.
 }
 \author{Lam Si Tung Ho, Robert Lachlan}

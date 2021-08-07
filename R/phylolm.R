@@ -44,6 +44,7 @@ phylolm <- function(formula, data=list(), phy,
   }
   X = model.matrix(attr(mf, "terms"), data=mf)
   y = model.response(mf)
+  print(y)
   d = ncol(X)
 
   ## Check that response is a vector

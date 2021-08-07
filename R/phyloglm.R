@@ -35,8 +35,8 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
       stop("the row names in the data do not match the tip labels in the tree.\n")
     mf = mf[ordr,,drop=F]
   }
-  X = model.matrix(attr(mf, "terms"), data=mf); 
-  y = model.response(mf);
+  X = model.matrix(attr(mf, "terms"), data=mf)
+  y = model.response(mf)
   dk = ncol(X) # number of predictors, including intercept, = dimension of beta
   
   phy = reorder(phy,"pruningwise")
@@ -484,7 +484,7 @@ You can increase this bound by increasing 'btol'.")
   colnames(results$vcov) = colnames(X)
   rownames(results$vcov) = colnames(X)
   results$linear.predictors = as.vector(X %*% results$coefficients)
-  names(results$linear.predictors) = names(y)
+  names(results$linear.predictors) = rownames(mf)
   
   if (method %in% logistic) {
     if (max(abs(results$linear.predictors)) + 0.01 > btol)
@@ -504,9 +504,10 @@ You can increase this bound by increasing 'btol'.")
     results$aic       = NA
   }    
   
-  names(results$fitted.values ) = names(y)
+  names(results$fitted.values) = rownames(mf)
   results$residuals = y - results$fitted.values
   results$y = y
+  names(results$y) = rownames(mf)
   results$n = n
   results$d = dk  
   results$formula = formula

@@ -8,7 +8,7 @@
   is the number of estimated parameters and k=2 for the usual AIC.}
 \usage{
 phyloglmstep(formula, starting.formula = NULL, data=list(), phy, 
-       method = c("logistic_MPLE","logistic_IG10"),
+       method = c("logistic_MPLE","logistic_IG10", "logistic_MLE", "poisson_GEE"),
        direction = c("both", "backward", "forward"), trace = 2,
        btol = 10, log.alpha.bound = 4, start.beta=NULL, 
        start.alpha=NULL, boot = 0, full.matrix = TRUE,

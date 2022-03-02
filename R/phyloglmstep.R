@@ -3,7 +3,7 @@
 ################################################
 
 phyloglmstep <- function(formula, starting.formula = NULL, data=list(), phy, 
-                      method = c("logistic_MPLE","logistic_IG10"),
+                      method=c("logistic_MPLE","logistic_IG10", "logistic_MLE", "poisson_GEE"),
                       direction = c("both", "backward", "forward"), trace = 2,
                       btol = 10, log.alpha.bound = 4, start.beta=NULL, 
                       start.alpha=NULL, boot = 0, full.matrix = TRUE,
@@ -29,7 +29,7 @@ phyloglmstep <- function(formula, starting.formula = NULL, data=list(), phy,
         return(str)
     }
     
-    ## fit phylolm
+    ## fit phyloglm
     fit <- function(plm) {
         return(phyloglm(create.formula(plm), data, phy, method, btol, log.alpha.bound, start.beta, start.alpha, boot, full.matrix, ...))
     }
@@ -46,7 +46,7 @@ phyloglmstep <- function(formula, starting.formula = NULL, data=list(), phy,
     }
     
     if (!is.null(starting.formula)) {
-        fit.current = phylolm(starting.formula, data, phy, method, btol, log.alpha.bound, start.beta, start.alpha, boot, full.matrix, ...)
+        fit.current = phyloglm(starting.formula, data, phy, method, btol, log.alpha.bound, start.beta, start.alpha, boot, full.matrix, ...)
         covariates.current = attr(terms(starting.formula), "term.labels")
         plm.current = rep(0,p)
         position = match(covariates.current,covariates)

@@ -7,7 +7,7 @@
   Ives and Garland (2010) and the Poisson regression described in Paradis and Claude (2002). The computation uses an algorithm that is
   linear in the number of tips in the tree.}
 \usage{
-phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10",
+phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10", "logistic_MLE",
          "poisson_GEE"), btol = 10, log.alpha.bound = 4,
          start.beta=NULL, start.alpha=NULL,
          boot = 0, full.matrix = TRUE)

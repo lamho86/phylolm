@@ -5,7 +5,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
   ### initialize	
   logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
   
-  if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")	
+  if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
   method = match.arg(method)
@@ -421,7 +421,8 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
     if (method == "logistic_MPLE") {
       opt <- optim(par=c(startB,startlL), fn=npllh, method="L-BFGS-B", control=list(factr=1e12), y=y)
       #optss<-list(reltol=.Machine$double.eps^0.5, maxit=100000, parscale=10)
-      #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss)  	
+      #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss) 
+      
       B  = opt$par[1:dk]
       lL = opt$par[dk+1]
       convergeflag = opt$convergence
@@ -430,6 +431,7 @@ phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logist
       opt <- optim(par=c(startB,startlL), fn=nllh, method="L-BFGS-B", control=list(factr=1e12), y=y)
       #optss<-list(reltol=.Machine$double.eps^0.5, maxit=100000, parscale=10)
       #opt<-subplex(par=cB, fn = function(par){robfunct(par)}, control=optss)  	
+      
       B  = opt$par[1:dk]
       lL = opt$par[dk+1]
       convergeflag = opt$convergence

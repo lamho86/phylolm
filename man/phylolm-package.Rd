@@ -9,8 +9,8 @@ Other tools include functions to test the adequacy of a population tree.}
 \tabular{ll}{
 Package: \tab phylolm\cr
 Type: \tab Package\cr
-Version: \tab 2.6.3\cr
-Date: \tab 2021-02-24\cr
+Version: \tab 2.6.4\cr
+Date: \tab 2022-03-02\cr
 License: \tab GPL (>= 2)\cr
 }
 }

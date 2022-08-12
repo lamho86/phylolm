@@ -715,10 +715,12 @@ vcov.phyloglm <- function(object, ...){
   vcov
 }
 ################################################
+nobs.phyloglm <- function(object, ...){
+  return(object$n)
+}
+################################################
 logLik.phyloglm <- function(object, ...){
-  res = list(logLik = object$logLik, df = object$d+1)
-  class(res) = "logLik.phylolm"
-  res
+  structure(object$logLik, df = object$d + 1, class = "logLik")
 }
 print.logLik.phyloglm <- function (x, ...) {
   cat("'log Lik.' ",x$logLik," (df=",x$df,")\n", sep = "")

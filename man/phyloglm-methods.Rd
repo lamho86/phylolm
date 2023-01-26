@@ -4,6 +4,7 @@
 \alias{print.summary.phyloglm}
 \alias{residuals.phyloglm}
 \alias{vcov.phyloglm}
+\alias{nobs.phyloglm}
 \alias{logLik.phyloglm}
 \alias{print.logLik.phyloglm}
 \alias{AIC.phyloglm}
@@ -17,6 +18,7 @@
 \method{summary}{phyloglm}(object, ...)
 \method{residuals}{phyloglm}(object,type = c("response"), ...)
 \method{vcov}{phyloglm}(object, ...)
+\method{nobs}{phyloglm}(object, ...)
 \method{logLik}{phyloglm}(object, ...)
 \method{AIC}{phyloglm}(object, k=2, ...)
 \method{plot}{phyloglm}(x, ...)

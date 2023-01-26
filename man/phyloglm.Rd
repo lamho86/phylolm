@@ -10,7 +10,7 @@
 phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10", "logistic_MLE",
          "poisson_GEE"), btol = 10, log.alpha.bound = 4,
          start.beta=NULL, start.alpha=NULL,
-         boot = 0, full.matrix = TRUE)
+         boot = 0, full.matrix = TRUE, save = FALSE)
 }
 
 \arguments{
@@ -25,6 +25,7 @@ phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10", "logist
   \item{start.alpha}{(logistic regression only) starting values for alpha (phylogenetic correlation).}
   \item{boot}{number of independent bootstrap replicates, \code{0} means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and alpha) will be returned.}
+  \item{save}{if \code{TRUE}, the simulated bootstrap data will be returned.}
 }
 \details{
   This function uses an algorithm that is linear in the number of tips in the tree.
@@ -60,6 +61,7 @@ phyloglm(formula, data, phy, method = c("logistic_MPLE","logistic_IG10", "logist
   \item{bootnumFailed}{(\code{boot > 0} only) number of independent bootstrap replicates for which
   \code{phyloglm} failed. These failures may be due to the bootstrap data having too few 0's or too few 1's.}
   \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
+  \item{bootdata}{(\code{boot > 0} and \code{save} = \code{TRUE} only) matrix of all bootstrap data (each column is a dataset).}
 }
 \references{
 Ho, L. S. T. and Ane, C. 2014. "A linear-time algorithm for Gaussian and

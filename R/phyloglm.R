@@ -1,6 +1,6 @@
 phyloglm <- function(formula, data=list(), phy, method=c("logistic_MPLE","logistic_IG10", "logistic_MLE", "poisson_GEE"),
                      btol = 10, log.alpha.bound = 4, start.beta=NULL, start.alpha=NULL, 
-                     boot = 0, full.matrix = TRUE)
+                     boot = 0, full.matrix = TRUE, save = FALSE)
 {
   ### initialize	
   logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
@@ -589,6 +589,7 @@ You can increase this bound by increasing 'btol'.")
     results$bootsdAlog = bootsdAlog
     results$bootnumFailed = length(ind.na)
     if (full.matrix) results$bootstrap = bootmatrix
+    if (save) results$bootdata = bootobject
     
     ### Turn on warnings
     options(warn=0)

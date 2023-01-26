@@ -480,7 +480,7 @@ You can increase this bound by increasing 'btol'.")
     )    
   }
   
-  if (results$converge) warning("phyloglm failed to converge.\n")
+  if (results$converge > 0) warning("phyloglm failed to converge.\n")
   
   names(results$coefficients) = colnames(X)
   colnames(results$vcov) = colnames(X)

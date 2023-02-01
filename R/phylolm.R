@@ -1,7 +1,7 @@
 phylolm <- function(formula, data=list(), phy, 
 	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
 	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, measurement_error = FALSE,
-	boot=0,full.matrix = TRUE, ...)
+	boot=0,full.matrix = TRUE, save = FALSE, ...)
 {
 
   ## initialize	
@@ -446,6 +446,7 @@ phylolm <- function(formula, data=list(), phy,
     results$bootmeansdLog = bootmeansdLog
     results$bootnumFailed = length(ind.na)
     if (full.matrix) results$bootstrap = bootmatrix
+    if (save) results$bootdata = booty
 
     ### Turn on warnings
     options(warn=0)

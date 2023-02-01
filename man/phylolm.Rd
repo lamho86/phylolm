@@ -9,7 +9,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
        lower.bound = NULL, upper.bound = NULL,
        starting.value = NULL, measurement_error = FALSE,
-       boot=0,full.matrix = TRUE, ...)
+       boot=0,full.matrix = TRUE, save = FALSE, ...)
 }
 
 \arguments{
@@ -24,6 +24,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{measurement_error}{a logical value indicating whether there is measurement error \code{sigma2_error} (see Details).}
   \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
+  \item{save}{if \code{TRUE}, the simulated bootstrap data will be returned.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
 \details{This function uses an algorithm that is linear in the number of
@@ -86,6 +87,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{bootnumFailed}{(\code{boot > 0} only) number of independent bootstrap replicates for which
   \code{phylolm} failed.}
   \item{bootstrap}{(\code{boot > 0} and \code{full.matrix} = \code{TRUE} only) matrix of all bootstrap estimates.}
+  \item{bootdata}{(\code{boot > 0} and \code{save} = \code{TRUE} only) matrix of all bootstrap data (each column is a dataset).}
   \item{r.squared}{The r^2 for the model.}
   \item{adj.r.squared}{The adjusted r^2 for the model.}
 }

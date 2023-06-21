@@ -21,4 +21,4 @@ BugReports: https://github.com/lamho86/phylolm/issues
 Encoding: UTF-8
 Packaged: 2016-10-16
 NeedsCompilation: yes
-Suggests: testthat
+Suggests: testthat, nlme

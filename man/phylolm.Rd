@@ -9,7 +9,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
        lower.bound = NULL, upper.bound = NULL,
        starting.value = NULL, measurement_error = FALSE,
-       boot=0,full.matrix = TRUE, save = FALSE, ...)
+       boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 }
 
 \arguments{
@@ -25,6 +25,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
   \item{save}{if \code{TRUE}, the simulated bootstrap data will be returned.}
+  \item{REML}{Use ML (default) or REML for estimating the parameters.}
   \item{\dots}{further arguments to be passed to the function \code{optim}.}
 }
 \details{This function uses an algorithm that is linear in the number of
@@ -47,16 +48,16 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   sampling error on the species mean, etc.).
 
   By default, the bounds on the phylogenetic parameters are
-  \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha}, 
+  \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha},
   \eqn{[10^{-7},1]} for \eqn{\lambda}{lambda},
   \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
   \eqn{[10^{-5},3]} for \eqn{\delta}{delta} and
   \eqn{[-3/T,0]} for \code{rate}, where \eqn{T} is the mean root-to-tip distance.
   \eqn{[10^{-16}, 10^{16}]} for the ratio \code{sigma2_error}/\code{sigma2} (if measurement errors is used).
-  
-  Bootstrapping can be parallelized using the \code{future} package on any future 
-  compatible back-end. For example, run \code{library(future); plan(multiprocess))}, 
-  after which bootstrapping will automatically occur in parallel. See 
+
+  Bootstrapping can be parallelized using the \code{future} package on any future
+  compatible back-end. For example, run \code{library(future); plan(multiprocess))},
+  after which bootstrapping will automatically occur in parallel. See
   \code{\link[future]{plan}} for options.
 }
 \value{
@@ -148,7 +149,7 @@ taxa = sort(tre$tip.label)
 b0=0; b1=1;
 x <- rTrait(n=1, phy=tre,model="BM",
             parameters=list(ancestral.state=0,sigma2=10))
-y <- b0 + b1*x + 
+y <- b0 + b1*x +
      rTrait(n=1,phy=tre,model="lambda",parameters=list(
               ancestral.state=0,sigma2=1,lambda=0.5))
 dat = data.frame(trait=y[taxa],pred=x[taxa])

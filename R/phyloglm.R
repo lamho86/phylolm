@@ -721,13 +721,18 @@ nobs.phyloglm <- function(object, ...){
 }
 ################################################
 logLik.phyloglm <- function(object, ...){
-  structure(object$logLik, df = object$d + 1, class = "logLik")
+  res <- object$logLik
+  attr(res, "df") <- object$d + 1
+  attr(res, "nobs") <- object$n
+  class(res) <- "logLik.phyloglm"
+  res
 }
 print.logLik.phyloglm <- function (x, ...) {
-  cat("'log Lik.' ",x$logLik," (df=",x$df,")\n", sep = "")
+  cat("'log Lik.' ",x," (df=",x$df,")\n", sep = "")
 }
 AIC.logLik.phyloglm <- function(object, k=2, ...) {
-  return(k*object$df - 2*object$logLik)
+  ll <- as.numeric(object)
+  return(k*attr(object, 'df') - 2*ll)
 }
 AIC.phyloglm <- function(object, k=2, ...) {
   return(AIC(logLik(object),k))

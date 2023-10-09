@@ -605,15 +605,18 @@ vcov.phylolm <- function(object, ...){
 }
 ################################################
 logLik.phylolm <- function(object, ...){
-  res = list(logLik = object$logLik, df = object$p)
-  class(res) = "logLik.phylolm"
+  res <- object$logLik
+  attr(res, "df") <- object$p
+  attr(res, "nobs") <- object$n
+  class(res) <- "logLik.phylolm"
   res
 }
 print.logLik.phylolm <- function (x, ...) {
-  cat("'log Lik.' ",x$logLik," (df=",x$df,")\n", sep = "")
+  cat("'log Lik.' ", x," (df=", attr(x, 'df'), ")\n", sep = "")
 }
 AIC.logLik.phylolm <- function(object, k=2, ...) {
-  return(k*object$df - 2*object$logLik)
+  ll <- as.numeric(object)
+  return(k*attr(object, 'df') - 2*ll)
 }
 AIC.phylolm <- function(object, k=2, ...) {
   return(AIC(logLik(object),k))

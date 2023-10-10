@@ -32,7 +32,7 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa])
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa])
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit_gls)))
   expect_equal(fit$sigma2, fit_gls$sigma^2 / tre_h)
 
   ## Fit - BM - REML

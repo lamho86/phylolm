@@ -86,8 +86,8 @@ test_that("Setting upper, lower and starting values", {
                                 lower.bound = list(alpha = 0.4, sigma2_error = 0.49)),
                         "the estimation of sigma2_error matches the upper/lower bound for this parameter")
 
-  expect_true(fit$sigma2_error <= 0.55 * fit$sigma2 / (2 * fit$optpar))
-  expect_true(fit$sigma2_error >= 0.49 * fit$sigma2 / (2 * fit$optpar))
+  expect_true(fit$sigma2_error <= 0.55 * fit$sigma2 / (2 * fit$optpar) + 1e-8)
+  expect_true(fit$sigma2_error >= 0.49 * fit$sigma2 / (2 * fit$optpar) + 1e-8)
   expect_true(fit$optpar <= 0.6)
   expect_true(fit$optpar >= 0.4)
 

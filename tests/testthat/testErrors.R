@@ -18,10 +18,10 @@ test_that("Multivariate Response throws an error", {
   fit2 <- phylolm(y_data[, 1, drop = FALSE] ~ cond, phy = tree)
   fit3 <- phylolm(y.1 ~ cond, phy = tree, data = all_dat)
 
-  expect_equal(fit1[!(names(fit1) %in% c("call", "formula"))],
-               fit2[!(names(fit1) %in% c("call", "formula"))])
-  expect_equal(fit1[!(names(fit1) %in% c("call", "formula"))],
-               fit3[!(names(fit1) %in% c("call", "formula"))])
+  expect_equal(fit1[!(names(fit1) %in% c("call", "formula", "model.frame"))],
+               fit2[!(names(fit1) %in% c("call", "formula", "model.frame"))])
+  expect_equal(fit1[!(names(fit1) %in% c("call", "formula", "model.frame"))],
+               fit3[!(names(fit1) %in% c("call", "formula", "model.frame"))])
 
   ## Multivariate fits throw errors
   expect_error(phylolm(y_data ~ cond, phy = tree),

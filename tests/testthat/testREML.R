@@ -23,7 +23,7 @@ test_that("REML estimates", {
   fit = phylolm(trait ~ pred + fac, data = dat, phy = tre, model = "BM")
   fit_gls <- nlme::gls(trait ~ pred + fac, data = dat, correlation = corBrownian(1, tre, form = ~species), method = "ML")
 
-  expect_equal(fit$logLik, fit_gls$logLik)
+  expect_equal(as.numeric(logLik(fit)), fit_gls$logLik)
   expect_equal(fit$coefficients, fit_gls$coefficients)
   expect_equal(fit$vcov, fit_gls$varBeta)
   expect_equal(fit$n, fit_gls$dims$N)
@@ -39,7 +39,7 @@ test_that("REML estimates", {
   fit = phylolm(trait ~ pred, data = dat, phy = tre, model = "BM", REML = TRUE)
   fit_gls <- nlme::gls(trait ~ pred, data = dat, correlation = corBrownian(1, tre, form = ~species), method = "REML")
 
-  expect_equal(fit$logLik, fit_gls$logLik)
+  expect_equal(as.numeric(logLik(fit)), fit_gls$logLik)
   expect_equal(fit$coefficients, fit_gls$coefficients)
   expect_equal(fit$vcov, fit_gls$varBeta)
   expect_equal(fit$n, fit_gls$dims$N)
@@ -48,14 +48,14 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa])
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa])
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), logLik(fit_gls)[1])
   expect_equal(fit$sigma2, fit_gls$sigma^2 / tre_h)
 
   ## Fit - lambda - ML
   fit = phylolm(trait ~ pred + fac, data = dat, phy = tre, model = "lambda")
   fit_gls <- nlme::gls(trait ~ pred + fac, data = dat, correlation = corPagel(1, tre, form = ~species), method = "ML")
 
-  expect_equal(fit$logLik, fit_gls$logLik)
+  expect_equal(as.numeric(logLik(fit)), fit_gls$logLik)
   expect_equal(fit$coefficients, fit_gls$coefficients, tolerance = 1e-5)
   expect_equal(fit$vcov, fit_gls$varBeta, tolerance = 1e-5)
   expect_equal(fit$n, fit_gls$dims$N)
@@ -64,7 +64,7 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa], tolerance = 1e-5)
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa], tolerance = 1e-5)
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), logLik(fit_gls)[1])
   expect_equal(fit$optpar, fit_gls$modelStruct$corStruct[1], tolerance = 1e-5)
   expect_equal(fit$sigma2, fit_gls$sigma^2 / tre_h, tolerance = 1e-5)
 
@@ -81,7 +81,7 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa], tolerance = 1e-6)
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa], tolerance = 1e-6)
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), logLik(fit_gls)[1])
   expect_equal(fit$optpar, fit_gls$modelStruct$corStruct[1], tolerance = 1e-6)
   expect_equal(fit$sigma2, fit_gls$sigma^2 / tre_h, tolerance = 1e-6)
 
@@ -98,7 +98,7 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa], tolerance = 1e-6)
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa], tolerance = 1e-6)
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), logLik(fit_gls)[1])
   expect_equal(fit$optpar, fit_gls$modelStruct$corStruct[1], tolerance = 1e-6)
   expect_equal(fit$sigma2 / 2 / fit$optpar, fit_gls$sigma^2, tolerance = 1e-6)
 
@@ -115,7 +115,7 @@ test_that("REML estimates", {
   expect_equal(fit$fitted[taxa], fit_gls$fitted[taxa], tolerance = 1e-6)
   expect_equal(fit$residuals[taxa], fit_gls$residuals[taxa], tolerance = 1e-6)
   expect_equal(AIC(fit), AIC(fit_gls))
-  expect_equal(logLik(fit)$logLik, logLik(fit_gls)[1])
+  expect_equal(as.numeric(logLik(fit)), logLik(fit_gls)[1])
   expect_equal(fit$optpar, fit_gls$modelStruct$corStruct[1], tolerance = 1e-6)
   expect_equal(fit$sigma2 / 2 / fit$optpar, fit_gls$sigma^2, tolerance = 1e-6)
 

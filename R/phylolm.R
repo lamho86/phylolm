@@ -332,6 +332,7 @@ phylolm <- function(formula, data=list(), phy,
   results$model = model
   results$boot = boot
   results$REML = REML
+  results$model.frame = mf
 
   ## starting the bootstrap
   if (boot>0) {
@@ -628,23 +629,41 @@ nobs.phylolm <- function(object, ...){
   return(object$n)
 }
 ################################################
-predict.phylolm <- function(object, newdata=NULL, ...){
+predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, ...){
+  se = rep(NA, object$n)
+  
+  # Standard error of prediction is computed as follows:
+  # V(predictor) = Var(x*bhat) = x*V(bhat)*t(x)
+  # SE(predictor) = sqrt(V(predictor))
+  
   if (object$model=="trend")
     stop("Predicting for trend model has not been implemented.")
-  if(is.null(newdata)) y <- fitted(object)
-  else{
-    X = model.matrix(delete.response(terms(formula(object))),data = newdata)
-    y <- X %*% coef(object)
+  if(is.null(newdata)) {
+    predictor <- fitted(object)
+    if (se.fit) 
+      for (i in 1:object$n) se[i] = sqrt(as.numeric(t(object$X[i,]) %*% object$vcov %*% object$X[i,]))
   }
-  y
+  else{
+    # For new data, we kind of ignore the tree structure
+    X = model.matrix(delete.response(terms(formula(object))),data = newdata)
+    predictor <- X %*% coef(object)
+    if (se.fit) 
+      for (i in 1:nrow(X)) se[i] = sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))
+  }
+  
+  if (se.fit) list(fit = predictor, se.fit = se, df = object$n - object$d, residual.scale = sd(object$residuals))
+  else predictor
 }
 ################################################
 plot.phylolm <-function(x, ...){
   plot(x$y, fitted(x), xlab = "Observed value", ylab = "Fitted value", ...)
 }
 ################################################
-################################################
 confint.phylolm <- function(object, parm, level = 0.95, ...){
   object$df.residuals <- object$n - object$d
   return(stats::confint.lm(object, parm, level, ...))
+}
+################################################
+model.frame.phylolm <- function(formula, ...) {
+  return(formula$model.frame)
 }

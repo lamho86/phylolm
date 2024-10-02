@@ -1,5 +1,5 @@
 <!-- badges: start -->⁠
-use_cran_badge(http://www.r-pkg.org/badges/version/phylolm)
+use_cran_badge()
 [![Research software impact](http://depsy.org/api/package/cran/phylolm/badge.svg)](http://depsy.org/package/r/phylolm)
 <!-- badges: end -->⁠
 

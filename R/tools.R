@@ -63,7 +63,7 @@ transf.branch.lengths <-
   if (is.null(parameters)) {
     parameters = parameters.default
   } else { 
-    if (class(parameters)!= "list") {
+    if (!inherits(parameters, "list")) {
       stop("please specify parameters as a list().")
     } else {
       specified <- !c(is.null(parameters$alpha),

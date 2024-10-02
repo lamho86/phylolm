@@ -11,12 +11,12 @@ When a new version is stable, it is pushed to CRAN, so the version available her
 - Lam Si Tung Ho and Cécile Ané (2014). 
 Intrinsic inference difficulties for trait evolution with Ornstein-Uhlenbeck models. 
 *Methods in Ecology and Evolution* 5(11):1133-1146. 
-[(link)](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12285/abstract)
+[(link)](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12285)
 
 - Lam Si Tung Ho and Cécile Ané (2014). 
 A linear-time algorithm for Gaussian and non-Gaussian trait evolution models. 
 *Systematic Biology* 63(3):397-408.
-[(link to pdf)](https://academic.oup.com/sysbio/article/63/3/397/1649891)
+[(link to pdf)](https://doi.org/10.1093/sysbio/syu005)
 
 ### Installation
 Install `phylolm` from `github`:

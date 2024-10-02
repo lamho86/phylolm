@@ -1,9 +1,10 @@
 citHeader("To cite package 'phylolm' in publications use:")
 
-citEntry(entry = "Article", 
-  author = personList(as.person("Lam Si Tung Ho"), as.person("Cecile Ane")),
+bibentry(
+  bibtype = "Article", 
+  author = c(as.person("Lam Si Tung Ho"), as.person("Cecile Ane")),
   title = "A linear-time algorithm for Gaussian and non-Gaussian trait evolution models",
-  year = 2014, 
+  year = "2014", 
   journal = "Systematic Biology",
   volume = "63",
   pages = "397-408",

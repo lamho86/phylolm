@@ -34,9 +34,6 @@ The default choice for \code{lambda} was proposed by Ho et al. (2019).
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
-}
 \examples{
 m = 3
 anc = c(0, 8, 16)

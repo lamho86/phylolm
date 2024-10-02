@@ -25,7 +25,7 @@ rTrait <- function(n=1, phy, model=c("BM","OU","lambda","kappa","delta","EB","tr
 
   ## User defined parameters
   if (is.null(parameters)) { parameters = parameters.default } else { 
-   if (class(parameters)!= "list") {
+   if (!inherits(parameters, "list")) {
     stop("please specify parameters as a list().")
    } else {
     specified <- !c(is.null(parameters$ancestral.state), 

@@ -1,7 +1,7 @@
-<!-- badges: start -->⁠
-use_cran_badge()
-[![Research software impact](http://depsy.org/api/package/cran/phylolm/badge.svg)](http://depsy.org/package/r/phylolm)
-<!-- badges: end -->⁠
+<!-- badges: start -->
+  [![CRAN status](https://www.r-pkg.org/badges/version/phylolm)](https://CRAN.R-project.org/package=phylolm)
+  [![Research software impact](http://depsy.org/api/package/cran/phylolm/badge.svg)](http://depsy.org/package/r/phylolm)
+<!-- badges: end -->
 
 ## phylolm: R package for Phylogenetic Linear Regression on very large trees
 

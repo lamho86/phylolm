@@ -645,7 +645,7 @@ predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, ...){
   }
   else{
     # For new data, we kind of ignore the tree structure
-    X = model.matrix(delete.response(terms(formula(object))),data = newdata)
+    X = model.matrix(delete.response(terms(as.formula(formula(object)))),data = newdata)
     predictor <- X %*% coef(object)
     if (se.fit) 
       for (i in 1:nrow(X)) se[i] = sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))

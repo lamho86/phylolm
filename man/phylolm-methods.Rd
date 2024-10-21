@@ -22,7 +22,7 @@
 \method{summary}{phylolm}(object, ...)
 \method{nobs}{phylolm}(object, ...)
 \method{residuals}{phylolm}(object,type = c("response"), ...)
-\method{predict}{phylolm}(object, newdata = NULL, se.fit = FALSE, ...)
+\method{predict}{phylolm}(object, newdata = NULL, se.fit = FALSE, na.action = na.omit, ...)
 \method{vcov}{phylolm}(object, ...)
 \method{logLik}{phylolm}(object, ...)
 \method{AIC}{phylolm}(object, k=2, ...)
@@ -40,6 +40,7 @@
   \item{newdata}{an optional data frame to provide the predictor values
   at which predictions should be made. If omitted, the fitted values are used. Currently, predictions are made for new species whose placement in the tree is unknown. Only their covariate information is used. The prediction for the trend model is not currently implemented.}
   \item{se.fit}{A switch indicating if standard errors are required.}
+  \item{na.action}{Argument to pass to \code{\link{model.frame}} indicating how missing values should be treated. The default is na.omit. Set na.action=na.pass to propagate predictor NAs to the predict output.}
   \item{k}{numeric, the penalty per parameter to be used; the default \code{k = 2} is the classical AIC.}
   \item{parm}{a specification of which parameters are to be given confidence intervals, either a vector of numbers or a vector of names. If missing, all parameters are considered.}
   \item{level}{the confidence level required.}

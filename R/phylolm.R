@@ -629,7 +629,7 @@ nobs.phylolm <- function(object, ...){
   return(object$n)
 }
 ################################################
-predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, ...){
+predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, na.action = na.omit, ...){
   se = rep(NA, object$n)
   
   # Standard error of prediction is computed as follows:
@@ -645,7 +645,13 @@ predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, ...){
   }
   else{
     # For new data, we kind of ignore the tree structure
-    X = model.matrix(delete.response(terms(as.formula(formula(object)))),data = newdata)
+    # X = model.matrix(delete.response(terms(as.formula(formula(object)))),data = newdata)
+
+    # use model.frame() to allow na.action argument:
+    X = model.matrix(delete.response(terms(as.formula(formula(object)))),
+                     data = model.frame(as.formula(formula(object)), 
+					newdata, na.action = na.action))
+	  
     predictor <- X %*% coef(object)
     if (se.fit) 
       for (i in 1:nrow(X)) se[i] = sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))

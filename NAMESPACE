@@ -5,15 +5,15 @@ exportPattern("^[[:alpha:]]+")
 import(ape)
 import(future.apply)
 
-importFrom("graphics", "abline", "axis", "barplot", "layout", "plot")
+importFrom("graphics", "abline", "axis", "barplot", "layout", "plot",
+           "hist", "mtext", "points")
 importFrom("stats", "AIC", "add.scope", "binomial", "coef",
-             "delete.response", "drop.scope", "fitted", "formula", "glm",
-             "logLik", "model.frame", "model.matrix", "model.response",
-             "optim", "pnorm", "poisson", "printCoefmat", "pt",
-             "quantile", "reorder", "rnorm", "runif", "sd", "terms",
-             "var", "nobs", "confint", "cor")
-importFrom("graphics", "hist", "mtext", "points")
-importFrom("stats", "chisq.test", "optimize", "pbeta")
+           "delete.response", "drop.scope", "fitted", "formula", "glm",
+           "logLik", "model.frame", "model.matrix", "model.response",
+           "optim", "pnorm", "poisson", "printCoefmat", "pt",
+           "quantile", "reorder", "rnorm", "runif", "sd", "terms",
+           "var", "nobs", "confint", "cor", "chisq.test", "optimize", "pbeta",
+           "as.formula", "na.omit")
 importFrom("utils", "flush.console")
 
 S3method(AIC,logLik.phyloglm)

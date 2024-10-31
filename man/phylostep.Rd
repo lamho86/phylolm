@@ -49,7 +49,7 @@ phylostep(formula, starting.formula = NULL, keeping.formula = NULL, data = list(
 
 \author{Lam Si Tung Ho and Cecile Ane}
 \seealso{
-\code{\link{phylolm}}.
+\code{\link{phylolm}}, \code{\link{phyloglmstep}}.
 }
 
 \examples{

@@ -50,7 +50,7 @@ phyloglmstep(formula, starting.formula = NULL, data=list(), phy,
 
 \author{Rutger Vos}
 \seealso{
-\code{\link{phyloglm}}.
+\code{\link{phyloglm}}, \code{\link{phylostep}}.
 }
 
 \examples{

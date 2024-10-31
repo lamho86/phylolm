@@ -138,7 +138,7 @@ the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 \eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
 }
 \seealso{
-\code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
+\code{\link{phylostep}}, \code{\link{phyloglm}}, \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
 \code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}.
 }
 

@@ -500,7 +500,7 @@ You can increase this bound by increasing 'btol'.")
   }  
   
   if (method == "poisson_GEE") {
-    results$fitted.values = as.vector(exp(-results$linear.predictors))    
+    results$fitted.values = as.vector(exp(results$linear.predictors))
     results$logLik    = NA
     results$penlogLik = NA
     results$aic       = NA
@@ -736,5 +736,55 @@ AIC.logLik.phyloglm <- function(object, k=2, ...) {
 }
 AIC.phyloglm <- function(object, k=2, ...) {
   return(AIC(logLik(object),k))
+}
+################################################
+predict.phyloglm <- function(object, newdata=NULL, se.fit = FALSE, na.action = na.omit, ...){
+  se = rep(NA, object$n)
+  
+  logistic = c("logistic_MPLE","logistic_IG10", "logistic_MLE")
+  
+  if(is.null(newdata)) {
+    predictor <- fitted(object)
+    if (se.fit) {
+      if (object$method %in% logistic) 
+        #         The predicted probability in a logistic regression is a transformation of the linear combination x^t beta. 
+        #         Thus, by the delta method, the predicted probability for
+        #           H(t) = (1+exp(-t))^{-1}
+        #         is
+        #           pi = H(x^t beta) = H(linear combination)
+        # 
+        #         Applying the delta method, we get
+        #           se(pi) = H'(linear combination) * stdp 
+        #                  = pi*(1-pi)*stdp, 
+        #         by properties of the logistic function H().
+        # 
+      for (i in 1:object$n) 
+        se[i] = predictor[i]*(1-predictor[i])*sqrt(as.numeric(t(object$X[i,]) %*% object$vcov %*% object$X[i,]))
+      if (object$method == "poisson_GEE")
+        for (i in 1:object$n) 
+          se[i] = predictor[i]*sqrt(as.numeric(t(object$X[i,]) %*% object$vcov %*% object$X[i,]))
+    }
+    
+  }
+  else{
+    # For new data, we kind of ignore the tree structure
+    
+    X = model.matrix(delete.response(terms(as.formula(formula(object)))),
+                     data = model.frame(as.formula(formula(object)), 
+                                        newdata, na.action = na.action))
+    
+    linear <- X %*% coef(object)
+    if (object$method %in% logistic) predictor = as.vector(1/(1+exp(-linear)))
+    if (object$method == "poisson_GEE") predictor = as.vector(exp(linear))
+    if (se.fit) {
+      if (object$method %in% logistic)
+        for (i in 1:nrow(X)) se[i] = predictor[i]*(1-predictor[i])*sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))
+      if (object$method == "poisson_GEE")
+        for (i in 1:nrow(X)) se[i] = predictor[i]*sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))
+    }
+  }
+  
+  if (se.fit) list(fit = predictor, se.fit = se, df = object$n - object$d, residual.scale = sd(object$residuals))
+  else predictor
 }
 ################################################

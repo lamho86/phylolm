@@ -1,6 +1,6 @@
 Package: phylolm
-Version: 2.6.6
-Date: 2024-10-23
+Version: 2.6.7
+Date: 2024-11-3
 Title: Phylogenetic Linear Regression
 Authors@R: c(person("Lam Si Tung", "Ho", role=c("aut", "cre"), email="lamho86@gmail.com"),
             person("Cecile", "Ane", role="aut"),

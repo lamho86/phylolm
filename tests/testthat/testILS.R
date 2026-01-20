@@ -93,3 +93,99 @@ test_that("GC fit", {
   expect_equal(fit$sigma2, 0.362, tolerance = 1e-3)
   expect_equal(fit$optpar, 1.920e-06, tolerance = 1e-3)
 })
+
+test_that("GC fit with replicates", {
+  ## Tree
+  set.seed(1289)
+  ntips <- 5
+  tree <- ape::rphylo(ntips, 0.1, 0)
+
+  ## Replicates
+  reps <- sample(1:3, ntips, replace = TRUE)
+  rep_ids <- make.unique(rep(tree$tip.label, times = reps), sep = "_")
+  ## match species to samples
+  data <- data.frame(species = rep(tree$tip.label, times = reps),
+                     sample = rep_ids)
+  ## add replicates on the tree
+  tree_rep <- add.replicates(tree, data)
+
+  ## Simulate data
+  traits <- rTrait(2, tree, model = "OU", parameters = list(alpha = 0.1))
+  traits_rep <- matrix(rep(traits, times = rep(reps, 2)), nrow = sum(reps))
+  traits_rep <- matrix(rnorm(prod(dim(traits_rep)), traits_rep, 0.5), nrow = sum(reps))
+  rownames(traits_rep) <- rep_ids
+  colnames(traits_rep) <- paste0("trait", 1:2)
+  traits_rep <- as.data.frame(traits_rep)
+  traits_rep$trait2 <- 2 * traits_rep$trait1 + traits_rep$trait2
+
+  ## Fit - BM errors
+  fit <- phylolm(trait1 ~ 1, data = traits_rep, phy = tree_rep, model = "BM", measurement_error = TRUE, REML = TRUE)
+  ## comparison with julia
+  expect_equal(fit$logLik, -13.7119218037, tolerance = 1e-5)
+  expect_equal(fit$sigma2, 0.447819, tolerance = 1e-5)
+  expect_equal(fit$sigma2_error, 0.204118, tolerance = 1e-5)
+
+  ## Fit - GC - lambda fixed
+  fit <- phylolm(trait1 ~ 1, data = traits_rep, phy = tree_rep, model = "GC", REML = TRUE,
+                 upper.bound = list(lambda_GC = 1), lower.bound = list(lambda_GC = 1), starting.value = list(lambda_GC = 1))
+  ## comparison with julia
+  expect_equal(fit$logLik, -14.0489140317, tolerance = 1e-5)
+  expect_equal(fit$sigma2, 0.304069, tolerance = 1e-5)
+
+  fit <- phylolm(trait1 ~ 1, data = traits_rep, phy = tree_rep, model = "GC", REML = TRUE,
+                 upper.bound = list(lambda_GC = 0), lower.bound = list(lambda_GC = 0), starting.value = list(lambda_GC = 0))
+  ## comparison with julia
+  expect_equal(fit$logLik, -14.0316023914, tolerance = 1e-5)
+  expect_equal(fit$sigma2, 0.305006, tolerance = 1e-5)
+
+  fit <- phylolm(trait1 ~ trait2, data = traits_rep, phy = tree_rep, model = "GC", REML = TRUE,
+                 upper.bound = list(lambda_GC = 1), lower.bound = list(lambda_GC = 1), starting.value = list(lambda_GC = 1))
+  ## comparison with julia
+  expect_equal(fit$logLik, -9.3567699602, tolerance = 1e-5)
+  expect_equal(fit$sigma2, 0.0855647, tolerance = 1e-5)
+
+  ## julia code
+  # tree = "((t4:6.964056834,(t5:2.862271346,t2:2.862271346):4.101785488):12.14330626,(t3:3.331896183,t1:3.331896183):15.77546691);"
+  # tree = readnewick(tree)
+  #
+  # df = DataFrame(
+  #   tipnames  = Vector{String}(["t1","t1","t2","t2","t3","t3","t4","t4","t4","t5"]),
+  #   trait1    = Vector{Float64}([0.3606089,1.4910356,1.2622511,1.7206378,1.8314243,1.3526612,-3.5467733,-3.1195793,-2.9613277,0.6563839]),
+  #   trait2    = Vector{Float64}([3.859196,6.197472,2.847903,3.205740,3.903874,3.928627,-6.149997,-6.252434,-5.375226,4.034418]))
+  #
+  #
+  # phylolm(@formula(trait1 ~ 1), df, tree; model = "BM", withinspecies_var = true)
+  # phylolm(@formula(trait1 ~ 1), df, tree; model = "gaussiancoalescent", paramlist=Dict(:lambda => (start=1, fixed=true)))
+  # phylolm(@formula(trait1 ~ trait2), df, tree; model = "gaussiancoalescent", paramlist=Dict(:lambda => (start=1, fixed=true)))
+
+})
+
+test_that("GC fit with replicates and measurement error", {
+  ## Tree
+  set.seed(1289)
+  ntips <- 100
+  tree <- ape::rphylo(ntips, 0.1, 0)
+
+  ## Replicates
+  reps <- sample(3:5, ntips, replace = TRUE)
+  rep_ids <- make.unique(rep(tree$tip.label, times = reps), sep = "_")
+  ## match species to samples
+  data <- data.frame(species = rep(tree$tip.label, times = reps),
+                     sample = rep_ids)
+  ## add replicates on the tree
+  tree_rep <- add.replicates(tree, data)
+
+  ## Simulate data
+  traits <- rTrait(2, tree, model = "OU", parameters = list(alpha = 0.1))
+  traits_rep <- matrix(rep(traits, times = rep(reps, 2)), nrow = sum(reps))
+  traits_rep <- matrix(rnorm(prod(dim(traits_rep)), traits_rep, 2), nrow = sum(reps))
+  rownames(traits_rep) <- rep_ids
+  colnames(traits_rep) <- paste0("trait", 1:2)
+  traits_rep <- as.data.frame(traits_rep)
+
+  ## Fit - BM errors
+  fit <- phylolm(trait1 ~ 1, data = traits_rep, phy = tree_rep, model = "GC", measurement_error = TRUE, REML = TRUE)
+  expect_equal(fit$sigma2_error, 3.592375, tolerance = 1e-5)
+
+})
+

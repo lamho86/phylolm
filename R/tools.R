@@ -316,25 +316,25 @@ add.replicates <- function(phy, data, species_id = "species", sample_id = "sampl
   tree_rep <- ape::drop.tip(tree_rep, tip_labels_original)
   # No true zeros
   tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] <- tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] + eps
+  # Function extracted from ape:::.compressTipLabel
+  relabel <- function(y, ref) {
+    n <- length(ref)
+    label <- y$tip.label
+    if (!identical(label, ref)) {
+      if (length(label) != length(ref))
+        stop("one tree has a different number of tips")
+      ilab <- match(label, ref)
+      if (any(is.na(ilab)))
+        stop("one tree has different tip labels")
+      ie <- match(1:n, y$edge[, 2])
+      y$edge[ie, 2] <- ilab
+    }
+    y$tip.label <- ref
+    y
+  }
   # relabel to initial order
   tree_rep <- relabel(tree_rep, data[[sample_id]])
   # result
   return(tree_rep)
 }
 
-# Function extracted from ape:::.compressTipLabel
-relabel <- function(y, ref) {
-  n <- length(ref)
-  label <- y$tip.label
-  if (!identical(label, ref)) {
-    if (length(label) != length(ref))
-      stop("one tree has a different number of tips")
-    ilab <- match(label, ref)
-    if (any(is.na(ilab)))
-      stop("one tree has different tip labels")
-    ie <- match(1:n, y$edge[, 2])
-    y$edge[ie, 2] <- ilab
-  }
-  y$tip.label <- ref
-  y
-}

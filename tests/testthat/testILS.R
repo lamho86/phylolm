@@ -1,4 +1,4 @@
-test_that("ILS fit", {
+test_that("GC fit", {
   #' @title Variance matrix for a BM with ILS on a tree
   #'
   #' @description
@@ -63,13 +63,13 @@ test_that("ILS fit", {
   # direct computation
   varils <- vcv_ils(tree, 0.2)
   # using branch length transform
-  treeils <- transf.branch.lengths(tree, model = "ILS", parameters = list("lambda_ILS" = 0.2))
+  treeils <- transf.branch.lengths(tree, model = "GC", parameters = list("lambda_GC" = 0.2))
   varils2 <- vcv(treeils$tree)
   # equal ?
   expect_equal(varils, varils2)
 })
 
-test_that("ILS fit", {
+test_that("GC fit", {
   set.seed(1289)
   ## simulate tree
   tree <- rphylo(15, 1, 0.1, fossils = TRUE)
@@ -85,11 +85,11 @@ test_that("ILS fit", {
   dat <- data.frame(trait = z, pred = x)
 
   ## Fit - Fixed values
-  fit <- phylolm(trait ~ pred, data = dat, phy = tree, model = "ILS")
+  fit <- phylolm(trait ~ pred, data = dat, phy = tree, model = "GC")
   expect_equal(fit$sigma2, 1.141, tolerance = 1e-3)
   expect_equal(fit$optpar, 5.546e-08, tolerance = 1e-3)
 
-  fit <- phylolm(trait ~ pred, data = dat, phy = tree, model = "ILS", measurement_error = TRUE)
+  fit <- phylolm(trait ~ pred, data = dat, phy = tree, model = "GC", measurement_error = TRUE)
   expect_equal(fit$sigma2, 0.362, tolerance = 1e-3)
   expect_equal(fit$optpar, 1.920e-06, tolerance = 1e-3)
 })

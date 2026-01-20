@@ -33,7 +33,7 @@ pruningwise.distFromRoot <- function(phy) {
 
 transf.branch.lengths <-
   function(phy,
-           model = c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend","ILS"),
+           model = c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend","GC"),
            parameters = NULL, check.pruningwise = TRUE, check.ultrametric=TRUE, D=NULL, check.names = TRUE)
 {
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
@@ -57,7 +57,7 @@ transf.branch.lengths <-
 
   ## Default parameters
   parameters.default = c(0,1,1,1,0,1,0)
-  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "lambda_ILS", "sigma2_error")
+  names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "lambda_GC", "sigma2_error")
 
   ## User defined parameters
   if (is.null(parameters)) {
@@ -71,16 +71,16 @@ transf.branch.lengths <-
                       is.null(parameters$kappa),
                       is.null(parameters$delta),
                       is.null(parameters$rate),
-                      is.null(parameters$lambda_ILS),
+                      is.null(parameters$lambda_GC),
                       is.null(parameters$sigma2_error))
       parameters.user <- c(parameters$alpha,
                            parameters$lambda,
                            parameters$kappa,
                            parameters$delta,
                            parameters$rate,
-                           parameters$lambda_ILS,
+                           parameters$lambda_GC,
                            parameters$sigma2_error)
-      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "lambda_ILS", "sigma2_error")
+      names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "lambda_GC", "sigma2_error")
       parameters <- parameters.default
       parameters[specified] <- parameters.user 
     }				
@@ -90,7 +90,7 @@ transf.branch.lengths <-
     kappa = parameters[3],
     delta = parameters[4],
     rate = parameters[5],
-    lambda_ILS = parameters[6],
+    lambda_GC = parameters[6],
     sigma2_error = parameters[7])  # note that sigma2_error = true_sigma2_error/sigma2)
 
   root.edge = 0 # default, holds for most models. Assumes original tree has no root edge.
@@ -176,13 +176,13 @@ transf.branch.lengths <-
       edge.length = (exp(rate*distFromRoot[des])-exp(rate*distFromRoot[anc]))/rate
     }			
   }
-  ## ILS model
-  if (model=="ILS") {
-    lambda_ILS <- p$lambda_ILS
+  ## GC model
+  if (model=="GC") {
+    lambda_GC <- p$lambda_GC
     coal_proba <- function(t) return(1 - exp(-t))
     distFromRoot <- pruningwise.distFromRoot(phy)
-    edge.length <- phy$edge.length + (lambda_ILS - 1) * (coal_proba(distFromRoot[des]) - coal_proba(distFromRoot[anc])) # note: this is zero for a zero length branch
-    edge.length[externalEdge] <- edge.length[externalEdge] + 1 + (lambda_ILS - 1) * (1 - coal_proba(distFromRoot[des[externalEdge]]))
+    edge.length <- phy$edge.length + (lambda_GC - 1) * (coal_proba(distFromRoot[des]) - coal_proba(distFromRoot[anc])) # note: this is zero for a zero length branch
+    edge.length[externalEdge] <- edge.length[externalEdge] + 1 + (lambda_GC - 1) * (1 - coal_proba(distFromRoot[des[externalEdge]]))
   }
 	
   edge.length[externalEdge] = edge.length[externalEdge] + errEdge # add measurement errors to the tree

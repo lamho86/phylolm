@@ -5,13 +5,13 @@
 \description{Creates a phylogenetic tree with branch lengths and a diagonal matrix to represent a (generalized) 3-point structured covariance matrix from a trait evolution model on a known tree.}
 \usage{
 transf.branch.lengths(phy, model = c("BM", "OUrandomRoot",
-       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "ILS"),
+       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "GC"),
        parameters = NULL, check.pruningwise = TRUE,
        check.ultrametric=TRUE, D=NULL, check.names = TRUE)
 }
 \arguments{
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}
-  \item{model}{a phylogenetic model. Default is "BM", for Brownian motion. Alternatives are "OU", "lambda", "kappa", "delta", "EB", "trend" and "ILS".}
+  \item{model}{a phylogenetic model. Default is "BM", for Brownian motion. Alternatives are "OU", "lambda", "kappa", "delta", "EB", "trend" and "GC".}
   \item{parameters}{List of parameters for the model (see Note).}
   \item{check.pruningwise}{if FALSE, the tree is assumed to be in pruningwise order.}
   \item{check.ultrametric}{if FALSE, the tree is assumed to be
@@ -28,7 +28,7 @@ Possible phylogenetic models are the Brownian motion model (BM), the
 Ornstein-Uhlenbeck model (OU), Pagel's lambda model (lambda), Pagel's
 kappa model (kappa), Pagel's delta model (delta), the early burst model
 (EB), the Brownian motion with a trend (trend),
-and the Browninan motion with incomplete lineage sorting (ILS). Edge lengths are
+and the Gaussian Coalescent model (GC). Edge lengths are
 unchanged under BM and the trend model.
 Under the kappa model, each branch length \eqn{\ell}{l} is transformed
 to \eqn{\ell^\kappa}{l^kappa}. 

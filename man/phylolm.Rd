@@ -6,7 +6,7 @@
 \description{Fits a phylogenetic linear regression model. The likelihood is calculated with an algorithm that is linear in the number of tips in the tree.}
 \usage{
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
-       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "ILS"),
+       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "GC"),
        lower.bound = NULL, upper.bound = NULL,
        starting.value = NULL, measurement_error = FALSE,
        boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
@@ -38,7 +38,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   (\code{lambda}), Pagel's \eqn{\kappa}{kappa} model (\code{kappa}),
   Pagel's \eqn{\delta}{delta} model (\code{delta}), the early burst
   model (\code{EB}), the Brownian motion model with a trend
-  (\code{trend}) and the Brownian motion with Incomplete Lineage Sorting (\code{ILS}).
+  (\code{trend}) and the Gaussian Coalescent model (\code{GC}).
 
   Using measurement error means that the covariance matrix is taken
   to be \eqn{\sigma^2*V + \sigma^2_{error}*I}{sigma^2 * V + sigma^2_error * I}
@@ -53,7 +53,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
   \eqn{[10^{-5},3]} for \eqn{\delta}{delta},
   \eqn{[-3/T,0]} for \code{rate},
-  \eqn{[10^{-16}, 10^{16}]} for \code{lambda_ILS}, and
+  \eqn{[10^{-16}, 10^{16}]} for \code{lambda_GC}, and
   \eqn{[10^{-16}, 10^{16}]} for the ratio \code{sigma2_error}/\code{sigma2} (if measurement errors is used),
   where \eqn{T} is the mean root-to-tip distance.
 
@@ -66,7 +66,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
    \item{coefficients}{the named vector of coefficients.}
    \item{sigma2}{the maximum likelihood estimate of the variance rate \eqn{\sigma^2}{sigma^2}.}
    \item{sigma2_error}{the maximum likelihood estimate of the variance of the measurement errors.}
-   \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta, rate or lambda_ILS).}
+   \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta, rate or lambda_GC).}
    \item{logLik}{the maximum of the log likelihood.}
    \item{p}{the number of all parameters of the model.}
    \item{aic}{AIC value of the model.}

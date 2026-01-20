@@ -1,5 +1,5 @@
 phylolm <- function(formula, data=list(), phy,
-	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend","ILS"),
+	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend","GC"),
 	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, measurement_error = FALSE,
 	boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 {
@@ -99,12 +99,12 @@ phylolm <- function(formula, data=list(), phy,
                             -3/Tmax,0,
                             1e-16,1e16,
                             1e-16,1e16), ncol=2, byrow=TRUE)
-  rownames(bounds.default) = c("alpha","lambda","kappa","delta","rate","lambda_ILS","sigma2_error")
+  rownames(bounds.default) = c("alpha","lambda","kappa","delta","rate","lambda_GC","sigma2_error")
   colnames(bounds.default) = c("min","max")
 
   ## Default starting values
   starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax,1,1)
-  names(starting.values.default) = c("alpha","lambda","kappa","delta","rate","lambda_ILS","sigma2_error")
+  names(starting.values.default) = c("alpha","lambda","kappa","delta","rate","lambda_GC","sigma2_error")
 
   ## Utility functions to get values
   get_value_param <- function(values, values.default, param) {
@@ -129,7 +129,7 @@ phylolm <- function(formula, data=list(), phy,
       if (model == "kappa") param <- "kappa"
       if (model == "delta") param <- "delta"
       if (model == "EB") param <- "rate"
-      if (model == "ILS") param <- "lambda_ILS"
+      if (model == "GC") param <- "lambda_GC"
       vals <- get_value_param(values, values.default, param)
     } else {
       vals <- NULL
@@ -148,7 +148,7 @@ phylolm <- function(formula, data=list(), phy,
   names(prm) = model # good for lambda, kappa, delta
   if (model %in% OU) names(prm) = "alpha"
   if (model == "EB") names(prm) = "rate"
-  if (model == "ILS") names(prm) = "lambda_ILS"
+  if (model == "GC") names(prm) = "lambda_GC"
   if (measurement_error) {
     if (model %in% c("BM","trend")) names(prm) = "sigma2_error"
     else prm[["sigma2_error"]] = starting.value[2]
@@ -510,7 +510,7 @@ print.phylolm <- function(x, digits = max(3, getOption("digits") - 3), ...){
     if (x$model %in% c("OUrandomRoot","OUfixedRoot")) cat("alpha:",x$optpar)
     if (x$model %in% c("lambda","kappa","delta")) cat(x$model,":",x$optpar)
     if (x$model=="EB") cat("rate:",x$optpar)
-    if (x$model=="ILS") cat("lambda_ILS:",x$optpar)
+    if (x$model=="GC") cat("lambda_GC:",x$optpar)
     cat("\n")
   }
   cat("sigma2:",x$sigma2,"\n")

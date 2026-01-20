@@ -275,4 +275,66 @@ three.point.compute <-
 
 }
 
+add.replicates <- function(phy, data, species_id = "species", sample_id = "sample", eps = .Machine$double.eps^2) {
+  if (!requireNamespace("phytools", quietly = TRUE)) {
+    stop("Package 'phytools' is needed for function 'add.replicates'.", call. = FALSE)
+  }
+  if (is.null(data[[sample_id]])) {
+    stop("The `data` data frame should contain a column named ", sample_id, " with sample ids. Plead adjust argument `sample_id` accordingly.")
+  }
+  if (length(data[[sample_id]]) != length(unique(data[[sample_id]]))){
+    stop("The sample ids in column named ", sample_id, " should be unique identifiers of the samples.")
+  }
+  if (is.null(data[[species_id]])) {
+    stop("The `data` data frame should contain a column named ", species_id, " with species names for each sample. Plead adjust argument `species_id` accordingly.")
+  }
+  data_tree_cor <- match(data[[species_id]], phy$tip.label)
+  if (anyNA(data_tree_cor)) {
+    # Species in data NOT in the tree
+    stop("Species '", paste(unique(data[[species_id]][is.na(data_tree_cor)]), collapse = "', '"), "' are in the data but not in the tree. Please remove them from the data before proceding (or use a tree that include them)." )
+  }
+  tree_data_cor <- match(phy$tip.label, data[[species_id]])
+  if (anyNA(tree_data_cor)) {
+    # Species in tree NOT in the data
+    warning("Species '", paste(unique(phy$tip.label[is.na(tree_data_cor)]), collapse = "', '"), "' are in the tree but not in the data. They will be droped from the final tree." )
+  }
+  ## Make tree
+  tree_rep <- phy
+  ## create unique labels for original tips to avoid confusion
+  tmpname <- paste(sample(c(letters, 0:9), 10, replace = TRUE), collapse = "")
+  tip_labels_original <- paste(phy$tip.label, tmpname, sep = "_")
+  tree_rep$tip.label <- tip_labels_original
+  # Add replicates
+  for (tip_index in seq_along(phy$tip.label)) {
+    all_rep_ids <- data[[sample_id]][data[[species_id]] == phy$tip.label[tip_index]]
+    for (rep_id in rev(all_rep_ids)) {
+      tree_rep <- phytools::bind.tip(tree_rep, tip.label = rep_id,
+                                     where = which(tree_rep$tip.label == tip_labels_original[tip_index]))
+    }
+  }
+  # Remove original tips
+  tree_rep <- ape::drop.tip(tree_rep, tip_labels_original)
+  # No true zeros
+  tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] <- tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] + eps
+  # relabel to initial order
+  tree_rep <- relabel(tree_rep, data[[sample_id]])
+  # result
+  return(tree_rep)
+}
 
+# Function extracted from ape:::.compressTipLabel
+relabel <- function(y, ref) {
+  n <- length(ref)
+  label <- y$tip.label
+  if (!identical(label, ref)) {
+    if (length(label) != length(ref))
+      stop("one tree has a different number of tips")
+    ilab <- match(label, ref)
+    if (any(is.na(ilab)))
+      stop("one tree has different tip labels")
+    ie <- match(1:n, y$edge[, 2])
+    y$edge[ie, 2] <- ilab
+  }
+  y$tip.label <- ref
+  y
+}

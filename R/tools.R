@@ -308,14 +308,12 @@ add.replicates <- function(phy, data, species_id = "species", sample_id = "sampl
   for (tip_index in seq_along(phy$tip.label)) {
     all_rep_ids <- data[[sample_id]][data[[species_id]] == phy$tip.label[tip_index]]
     for (rep_id in rev(all_rep_ids)) {
-      tree_rep <- phytools::bind.tip(tree_rep, tip.label = rep_id,
+      tree_rep <- phytools::bind.tip(tree_rep, tip.label = rep_id, edge.length = eps,
                                      where = which(tree_rep$tip.label == tip_labels_original[tip_index]))
     }
   }
   # Remove original tips
   tree_rep <- ape::drop.tip(tree_rep, tip_labels_original)
-  # No true zeros
-  tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] <- tree_rep$edge.length[tree_rep$edge[, 2] %in% 1:length(tree_rep$tip.label)] + eps
   # Function extracted from ape:::.compressTipLabel
   relabel <- function(y, ref) {
     n <- length(ref)

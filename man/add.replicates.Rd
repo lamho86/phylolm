@@ -13,9 +13,9 @@ add.replicates(phy, data,
 }
 \arguments{
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}
-  \item{data}{a data frame containing at least two columns, one with sample ids named \code{sample_id}, and one with species names named for each samples, named \code{species_id}.}
-  \item{species_id}{name of the column in \code{data} containing species names. Default to \code{"species"}.}
-  \item{sample_id}{name of the column in \code{data} containing sample ids. Default to \code{"sample"}.}
+  \item{data}{either a vector containing replicated species names, or a data frame containing at least two columns, one with sample ids named \code{sample_id}, and one with species names for each samples, named \code{species_id}.}
+  \item{species_id}{optional name of the column in \code{data} containing species names. Default to \code{"species"}.}
+  \item{sample_id}{optional name of the column in \code{data} containing sample ids. Default to \code{"sample"}.}
   \item{eps}{length of terminal branches, that should be close to zero. Default to \code{.Machine$double.eps^2}.}
 }
 \details{

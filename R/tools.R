@@ -279,6 +279,14 @@ add.replicates <- function(phy, data, species_id = "species", sample_id = "sampl
   if (!requireNamespace("phytools", quietly = TRUE)) {
     stop("Package 'phytools' is needed for function 'add.replicates'.", call. = FALSE)
   }
+  if (!(is.data.frame(data) || is.vector(data))) {
+    stop("`data` must be a data frame or a vector.")
+  }
+  if (is.vector(data)) {
+    data <- data.frame(data)
+    colnames(data) <- species_id
+    data[[sample_id]] <- make.unique(data[[species_id]], sep = "_")
+  }
   if (is.null(data[[sample_id]])) {
     stop("The `data` data frame should contain a column named ", sample_id, " with sample ids. Plead adjust argument `sample_id` accordingly.")
   }

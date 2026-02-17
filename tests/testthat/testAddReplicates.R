@@ -49,11 +49,21 @@ test_that("addReplicates", {
   expect_warning(add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
 
+  ## from a vector
+  traits$unique_ids <- make.unique(traits$species, sep = "_")
+  expect_warning(tree_1 <- add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
+                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+  expect_warning(tree_2 <- add.replicates(tree, traits$species),
+                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+  expect_true(isTRUE(all.equal(tree_1, tree_2)))
+
   ## Replicated ids
   traits$unique_ids[2] <- traits$unique_ids[3]
 
   expect_error(add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
                "should be unique identifiers of the samples")
+
+
 })
 
 test_that("phylolm - rep", {

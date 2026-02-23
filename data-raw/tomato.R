@@ -20,7 +20,7 @@ tomato_traits$sp_accession <- paste0(tomato_traits$Sp_ID, "_", tomato_traits$Acc
 ## accession for each species
 aasp <- sapply(unique(tomato_traits$Sp_ID), function(x) summary(factor(subset(tomato_traits, Sp_ID == x)$AccessionID)))
 aasp
-# when there are several accession per species, we chose the one with the largest number of replicates.
+# when there are several accession per species, we chose the one with the largest number of individual measurements.
 # this happens for the following species
 aasp[sapply(aasp, function(x) length(x) > 1)]
 # tip names vs traits

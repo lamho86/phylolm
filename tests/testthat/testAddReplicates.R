@@ -15,7 +15,7 @@ test_that("addReplicates", {
   traits$id <- mapply(paste0, traits$species, do.call(c, sapply(reps, function(x) if (x > 0) paste0("_", 1:x))))
 
   ## Replicates
-  expect_warning(tree_rep <- add.replicates(tree, traits, species_id = "species", sample_id = "id"),
+  expect_warning(tree_rep <- add.individuals(tree, traits, species_id = "species", sample_id = "id"),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
   expect_equal(length(tree_rep$tip.label), sum(reps))
   expect_equal(ape::is.ultrametric(tree_rep), TRUE)
@@ -24,7 +24,7 @@ test_that("addReplicates", {
   traits_extra <- rbind(traits, data.frame(g1 = rnorm(3, 3, 3),
                                            species = rep("r1", 3),
                                            id = paste0("r1_", 1:3)))
-  expect_error(add.replicates(tree, traits_extra, species_id = "species", sample_id = "id"),
+  expect_error(add.individuals(tree, traits_extra, species_id = "species", sample_id = "id"),
                "are in the data but not in the tree.")
 
   ## Wrong names - species
@@ -33,9 +33,9 @@ test_that("addReplicates", {
   )
   traits$id <- mapply(paste0, traits$labels, do.call(c, sapply(reps, function(x) if (x > 0) paste0("_", 1:x))))
 
-  expect_error(add.replicates(tree, traits, species_id = "species", sample_id = "id"),
+  expect_error(add.individuals(tree, traits, species_id = "species", sample_id = "id"),
                "data frame should contain a column named species with species names for each sample")
-  expect_warning(add.replicates(tree, traits, species_id = "labels", sample_id = "id"),
+  expect_warning(add.individuals(tree, traits, species_id = "labels", sample_id = "id"),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
 
   ## Wrong names - ids
@@ -44,23 +44,23 @@ test_that("addReplicates", {
   )
   traits$unique_ids <- mapply(paste0, traits$species, do.call(c, sapply(reps, function(x) if (x > 0) paste0("_", 1:x))))
 
-  expect_error(add.replicates(tree, traits, species_id = "species", sample_id = "id"),
+  expect_error(add.individuals(tree, traits, species_id = "species", sample_id = "id"),
                "data frame should contain a column named id with sample ids")
-  expect_warning(add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
+  expect_warning(add.individuals(tree, traits, species_id = "species", sample_id = "unique_ids"),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
 
   ## from a vector
   traits$unique_ids <- make.unique(traits$species, sep = "_")
-  expect_warning(tree_1 <- add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
+  expect_warning(tree_1 <- add.individuals(tree, traits, species_id = "species", sample_id = "unique_ids"),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
-  expect_warning(tree_2 <- add.replicates(tree, traits$species),
+  expect_warning(tree_2 <- add.individuals(tree, traits$species),
                  "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
   expect_true(isTRUE(all.equal(tree_1, tree_2)))
 
   ## Replicated ids
   traits$unique_ids[2] <- traits$unique_ids[3]
 
-  expect_error(add.replicates(tree, traits, species_id = "species", sample_id = "unique_ids"),
+  expect_error(add.individuals(tree, traits, species_id = "species", sample_id = "unique_ids"),
                "should be unique identifiers of the samples")
 
 
@@ -81,7 +81,7 @@ test_that("phylolm - rep", {
   data <- data.frame(species = rep(tree$tip.label, times = reps),
                      sample = rep_ids)
   ## add replicates on the tree
-  tree_rep <- add.replicates(tree, data)
+  tree_rep <- add.individuals(tree, data)
 
   ## Simulate data
   traits <- rTrait(3, tree, model = "OU", parameters = list(alpha = 0.1))

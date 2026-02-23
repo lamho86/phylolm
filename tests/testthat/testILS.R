@@ -94,20 +94,20 @@ test_that("GC fit", {
   expect_equal(fit$optpar, 1.920e-06, tolerance = 1e-3)
 })
 
-test_that("GC fit with replicates", {
+test_that("GC fit with individuals", {
   ## Tree
   set.seed(1289)
   ntips <- 5
   tree <- ape::rphylo(ntips, 0.1, 0)
 
-  ## Replicates
+  ## Individual measurements
   reps <- sample(1:3, ntips, replace = TRUE)
   rep_ids <- make.unique(rep(tree$tip.label, times = reps), sep = "_")
   ## match species to samples
   data <- data.frame(species = rep(tree$tip.label, times = reps),
                      sample = rep_ids)
-  ## add replicates on the tree
-  tree_rep <- add.replicates(tree, data)
+  ## add individuals on the tree
+  tree_rep <- add.individuals(tree, data)
 
   ## Simulate data
   traits <- rTrait(2, tree, model = "OU", parameters = list(alpha = 0.1))
@@ -160,20 +160,20 @@ test_that("GC fit with replicates", {
 
 })
 
-test_that("GC fit with replicates and measurement error", {
+test_that("GC fit with individuals and measurement error", {
   ## Tree
   set.seed(1289)
   ntips <- 100
   tree <- ape::rphylo(ntips, 0.1, 0)
 
-  ## Replicates
+  ## Individual measurements
   reps <- sample(3:5, ntips, replace = TRUE)
   rep_ids <- make.unique(rep(tree$tip.label, times = reps), sep = "_")
   ## match species to samples
   data <- data.frame(species = rep(tree$tip.label, times = reps),
                      sample = rep_ids)
-  ## add replicates on the tree
-  tree_rep <- add.replicates(tree, data)
+  ## add individuals on the tree
+  tree_rep <- add.individuals(tree, data)
 
   ## Simulate data
   traits <- rTrait(2, tree, model = "OU", parameters = list(alpha = 0.1))

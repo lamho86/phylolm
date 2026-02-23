@@ -147,15 +147,15 @@ the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 To use the GC model with individual measurements, it is possible to create a
 modified tree with each individual sample added as a separate tip,
 and linked to the species node by a branch of length zero,
-using function \code{\link{add.replicates}}.
+using function \code{\link{add.individuals}}.
 Using this trick the GC model can also be used in combination with
 \code{measurement_error=TRUE}, that then represents measurement error
-at the individual level (see example in \code{\link{add.replicates}}).
+at the individual level (see example in \code{\link{add.individuals}}).
 
 }
 \seealso{
 \code{\link{phylostep}}, \code{\link{phyloglm}}, \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
-\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}, \code{\link{add.replicates}}.
+\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}, \code{\link{add.individuals}}.
 }
 
 \examples{

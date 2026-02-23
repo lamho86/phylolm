@@ -1,4 +1,4 @@
-pruningwise.branching.times <- function(phy) {   	
+pruningwise.branching.times <- function(phy) {
   ## calculates branching times = node ages, for ultrametric tree in pruningwise order
   ## !warning! no test that tree is in pruningwise order and ultrametric.
   ## branching time = age = time from the node to tips
@@ -37,13 +37,13 @@ transf.branch.lengths <-
            parameters = NULL, check.pruningwise = TRUE, check.ultrametric=TRUE, D=NULL, check.names = TRUE)
 {
   if (!inherits(phy, "phylo")) stop("object \"phy\" is not of class \"phylo\".")
-  model = match.arg(model)	
+  model = match.arg(model)
   if (model=="trend")
     if (is.ultrametric(phy))
-      stop("the trend is unidentifiable for ultrametric trees.")	
+      stop("the trend is unidentifiable for ultrametric trees.")
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
-  if (is.null(phy$tip.label)) stop("the tree has no tip labels.")	
-  tol = 1e-10	
+  if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
+  tol = 1e-10
   if (check.pruningwise) phy = reorder(phy,"pruningwise")
   n <- length(phy$tip.label)
   N <- dim(phy$edge)[1]
@@ -62,7 +62,7 @@ transf.branch.lengths <-
   ## User defined parameters
   if (is.null(parameters)) {
     parameters = parameters.default
-  } else { 
+  } else {
     if (!inherits(parameters, "list")) {
       stop("please specify parameters as a list().")
     } else {
@@ -82,8 +82,8 @@ transf.branch.lengths <-
                            parameters$sigma2_error)
       names(parameters.default) = c("alpha", "lambda", "kappa", "delta", "rate", "lambda_GC", "sigma2_error")
       parameters <- parameters.default
-      parameters[specified] <- parameters.user 
-    }				
+      parameters[specified] <- parameters.user
+    }
   }
   p = list(alpha = parameters[1],
     lambda = parameters[2],
@@ -100,7 +100,7 @@ transf.branch.lengths <-
   ## BM model
   if (model %in% c("BM","trend")) {
     edge.length = phy$edge.length
-  }	
+  }
   ## OU models
   OU = c("OUrandomRoot","OUfixedRoot")
   if (model %in% OU) {
@@ -128,7 +128,7 @@ transf.branch.lengths <-
     Tmax <- max(times)
     alpha = p$alpha
     errEdge = errEdge*exp(-2*alpha*D[des[externalEdge]]) # adjust measurement errors for OU models
-    ## OUrandomRoot model	
+    ## OUrandomRoot model
     if (model=="OUrandomRoot") {
       distFromRoot <-  exp(-2*alpha*times) # fixit: divide by 2 alpha??
       d1 = distFromRoot[anc-n] # distFromRoot has internal nodes only, not the n external nodes.
@@ -137,7 +137,7 @@ transf.branch.lengths <-
       d2[!externalEdge] = distFromRoot[des[!externalEdge]-n]
     }
     ## OUfixedRoot model
-    if (model=="OUfixedRoot") {	
+    if (model=="OUfixedRoot") {
       distFromRoot <-  exp(-2*alpha*times)*(1 - exp(-2*alpha*(Tmax-times))) # fixit: divide by 2 alpha?
       d1 = distFromRoot[anc-n]
       d2 = numeric(N)
@@ -152,7 +152,7 @@ transf.branch.lengths <-
   if (model=="lambda") {
     lambda = p$lambda
     distFromRoot <- pruningwise.distFromRoot(phy)
-    edge.length = phy$edge.length * lambda 
+    edge.length = phy$edge.length * lambda
     edge.length[externalEdge] = edge.length[externalEdge] + (1-lambda)*distFromRoot[des[externalEdge]]
   }
   ## kappa model
@@ -174,7 +174,7 @@ transf.branch.lengths <-
     else {
       distFromRoot <- pruningwise.distFromRoot(phy)
       edge.length = (exp(rate*distFromRoot[des])-exp(rate*distFromRoot[anc]))/rate
-    }			
+    }
   }
   ## GC model
   if (model=="GC") {
@@ -184,7 +184,7 @@ transf.branch.lengths <-
     edge.length <- phy$edge.length + (lambda_GC - 1) * (coal_proba(distFromRoot[des]) - coal_proba(distFromRoot[anc])) # note: this is zero for a zero length branch
     edge.length[externalEdge] <- edge.length[externalEdge] + 1 + (lambda_GC - 1) * (1 - coal_proba(distFromRoot[des[externalEdge]]))
   }
-	
+
   edge.length[externalEdge] = edge.length[externalEdge] + errEdge # add measurement errors to the tree
   phy$edge.length = edge.length
   phy$root.edge = root.edge
@@ -195,8 +195,8 @@ transf.branch.lengths <-
 ################################################
 
 three.point.compute <-
-  function(phy, P, Q = NULL, diagWeight = NULL, 
-           check.pruningwise = TRUE, check.names = TRUE, check.precision = TRUE) 
+  function(phy, P, Q = NULL, diagWeight = NULL,
+           check.pruningwise = TRUE, check.names = TRUE, check.precision = TRUE)
 {
   ## For an extra tip Variance, like diagonal measurement error E:
   ## V = DVoD + E = D Vn D with Vn = Vo + D^{-1}ED^{-1} still from tree.
@@ -208,7 +208,7 @@ three.point.compute <-
   n <- length(phy$tip.label)
   N <- dim(phy$edge)[1]
   ROOT <- n + 1L
-  root.edge = if (is.null(phy$root.edge)) 0 else phy$root.edge 
+  root.edge = if (is.null(phy$root.edge)) 0 else phy$root.edge
   anc <- phy$edge[, 1]
   des <- phy$edge[, 2]
   if (is.null(diagWeight)) {
@@ -271,13 +271,13 @@ three.point.compute <-
   if (flag==1) # Q absent
     return(list(vec11=PP[1,1], P1=PP[1,-1], PP=PP[-1,-1], logd=logd))
   return(list(vec11=PP[1,1], P1=PP[1,-1], PP=PP[-1,-1],
-              Q1=QQ[1,-1], QQ=QQ[-1,-1], QP=QP[-1,-1], logd=logd)) 
+              Q1=QQ[1,-1], QQ=QQ[-1,-1], QP=QP[-1,-1], logd=logd))
 
 }
 
-add.replicates <- function(phy, data, species_id = "species", sample_id = "sample", eps = .Machine$double.eps^2) {
+add.individuals <- function(phy, data, species_id = "species", sample_id = "sample", eps = .Machine$double.eps^2) {
   if (!requireNamespace("phytools", quietly = TRUE)) {
-    stop("Package 'phytools' is needed for function 'add.replicates'.", call. = FALSE)
+    stop("Package 'phytools' is needed for function 'add.individuals'.", call. = FALSE)
   }
   if (!(is.data.frame(data) || is.vector(data))) {
     stop("`data` must be a data frame or a vector.")
@@ -312,7 +312,7 @@ add.replicates <- function(phy, data, species_id = "species", sample_id = "sampl
   tmpname <- paste(sample(c(letters, 0:9), 10, replace = TRUE), collapse = "")
   tip_labels_original <- paste(phy$tip.label, tmpname, sep = "_")
   tree_rep$tip.label <- tip_labels_original
-  # Add replicates
+  # Add individuals
   for (tip_index in seq_along(phy$tip.label)) {
     all_rep_ids <- data[[sample_id]][data[[species_id]] == phy$tip.label[tip_index]]
     for (rep_id in rev(all_rep_ids)) {

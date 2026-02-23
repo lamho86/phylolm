@@ -1,7 +1,7 @@
 phylolm <- function(formula, data=list(), phy,
 	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
 	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, 
-	estimate_measurement_error = FALSE, input_error = NULL,
+	measurement_error = FALSE, input_error = NULL,
 	boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 {
 
@@ -10,7 +10,7 @@ phylolm <- function(formula, data=list(), phy,
   model = match.arg(model)
   if ((model=="trend")&(is.ultrametric(phy)))
    stop("the trend is unidentifiable for ultrametric trees.")
-  if ((model=="lambda") && estimate_measurement_error)
+  if ((model=="lambda") && measurement_error)
     stop("the lambda transformation and measurement error cannot be used together: they are not distinguishable")
   if (is.null(phy$edge.length)) stop("the tree has no branch lengths.")
   if (is.null(phy$tip.label)) stop("the tree has no tip labels.")
@@ -127,7 +127,7 @@ phylolm <- function(formula, data=list(), phy,
     if (is.null(val)) return(values.default[[param]])
     return(val)
   }
-  get_value_model <- function(values, values.default, model, estimate_measurement_error, input_error_flag) {
+  get_value_model <- function(values, values.default, model, measurement_error, input_error_flag) {
     if (model != "BM") {
       if (model %in% OU) param <- "alpha"
       if (model == "lambda") param <- "lambda"
@@ -138,7 +138,7 @@ phylolm <- function(formula, data=list(), phy,
     } else {
       vals <- NULL
     }
-    if (estimate_measurement_error) vals <- c(vals, get_value_param(values, values.default, "sigma2_error"))
+    if (measurement_error) vals <- c(vals, get_value_param(values, values.default, "sigma2_error"))
     if (input_error_flag) {
       vals <- c(vals, get_value_param(values, values.default, "sigma2"))
       vals <- c(vals, rep(get_value_param(values, values.default, "beta"),d)) # beta is a vector 
@@ -147,9 +147,9 @@ phylolm <- function(formula, data=list(), phy,
   }
 
   ## User defined bounds and starting values
-  lower.bound <- get_value_model(lower.bound, bounds.default[ , 1], model, estimate_measurement_error, !is.null(input_error))
-  upper.bound <- get_value_model(upper.bound, bounds.default[ , 2], model, estimate_measurement_error, !is.null(input_error))
-  starting.value <- get_value_model(starting.value, starting.values.default, model, estimate_measurement_error, !is.null(input_error))
+  lower.bound <- get_value_model(lower.bound, bounds.default[ , 1], model, measurement_error, !is.null(input_error))
+  upper.bound <- get_value_model(upper.bound, bounds.default[ , 2], model, measurement_error, !is.null(input_error))
+  starting.value <- get_value_model(starting.value, starting.values.default, model, measurement_error, !is.null(input_error))
 
   ## preparing for general use of "parameter" for branch length transformation
   prm = list(myname = starting.value[1])
@@ -157,12 +157,12 @@ phylolm <- function(formula, data=list(), phy,
   if (model %in% OU) names(prm) = "alpha"
   if (model == "EB") names(prm) = "rate"
   if (is.null(input_error)) { # no input_error, process as normal
-    if (estimate_measurement_error) {
+    if (measurement_error) {
       if (model %in% c("BM","trend")) names(prm) = "sigma2_error"
       else prm[["sigma2_error"]] = starting.value[2]
     }
   } else { # special treatment for input_error
-    if (estimate_measurement_error) {
+    if (measurement_error) {
       if (model %in% c("BM","trend")) {
         names(prm) = "sigma2_error"
         prm[["sigma2"]] = starting.value[2]
@@ -260,7 +260,7 @@ phylolm <- function(formula, data=list(), phy,
   start = starting.value
   
   if (is.null(input_error)) { # no input_error, process as normal
-    if ((model %in% c("BM","trend"))&&(!estimate_measurement_error)) {
+    if ((model %in% c("BM","trend"))&&(!measurement_error)) {
       BMest = loglik(prm, y, X) # root edge taken to be 0
       results <- list(coefficients=BMest$betahat, sigma2=BMest$sigma2hat, optpar=NULL, sigma2_error = 0,
                       logLik=-BMest$n2llh/2, p=1+d, aic=2*(1+d)+BMest$n2llh, vcov = BMest$vcov)
@@ -286,14 +286,14 @@ phylolm <- function(formula, data=list(), phy,
       minus2llh <- function(logvalue, y) {
         if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate)
         else prm[[1]]=exp(logvalue[1]) # first element is the parameter of the model
-        if ((estimate_measurement_error)&&(!(model %in% c("BM","trend")))){
+        if ((measurement_error)&&(!(model %in% c("BM","trend")))){
           prm[[2]]=exp(logvalue[2])
         }
         loglik(prm, y, X)$n2llh
       }
       
       # get objects to start the search, and to bound the search
-      if (lower[1]==upper[1] && !(estimate_measurement_error)) { # no optimization in fact
+      if (lower[1]==upper[1] && !(measurement_error)) { # no optimization in fact
         prm[[1]] = lower[1]
         BMest = loglik(prm, y, X)
       }  else {
@@ -306,7 +306,7 @@ phylolm <- function(formula, data=list(), phy,
           logstart = start  # do *not* log transform 'rate' because it is <= 0
           loglower = lower
           logupper = upper
-          if(estimate_measurement_error){
+          if(measurement_error){
             logstart[2] = log(start[2])
             loglower[2] = log(lower[2])
             logupper[2] = log(upper[2])
@@ -318,7 +318,7 @@ phylolm <- function(formula, data=list(), phy,
           #       to be used later in loglik to get the estimated beta and sigma2.
           if (model == "EB") MLEvalue = as.numeric(opt$par[1]) else MLEvalue = as.numeric(exp(opt$par[1]))
           prm[[1]] = MLEvalue
-          if (estimate_measurement_error){
+          if (measurement_error){
             MLEsigma2_error = as.numeric(exp(opt$par[2]))
             prm[[2]] = MLEsigma2_error
           }
@@ -366,7 +366,7 @@ phylolm <- function(formula, data=list(), phy,
       }
       # rescaling measurement error by sigma2
       sigma2_errorhat = 0
-      if (estimate_measurement_error)
+      if (measurement_error)
         sigma2_errorhat = MLEsigma2_error * BMest$sigma2hat
       # rescale sigma2 if OU, because it was "gamma" originally: sigma2 = 2 alpha gamma:
       if (model %in% OU)
@@ -378,7 +378,7 @@ phylolm <- function(formula, data=list(), phy,
         results$p = results$p - 1
         results$aic = results$aic - 2
       }
-      if (estimate_measurement_error) {
+      if (measurement_error) {
         results$p = results$p + 1 # adjust the number of parameters
         results$aic = results$aic + 2 # adjust AIC value
       }
@@ -391,7 +391,7 @@ phylolm <- function(formula, data=list(), phy,
     
     minus2llh=function(logvalue, y) {
       if(model %in% c("BM","trend")){
-        if (estimate_measurement_error) {
+        if (measurement_error) {
           prm[[1]] = exp(logvalue[1]) # sigma2_err 
           prm[[2]] = exp(logvalue[2]) # sigma2
           prm[[3]] = logvalue[3:(3+d-1)] # beta
@@ -402,7 +402,7 @@ phylolm <- function(formula, data=list(), phy,
       } else {
         if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate) 
         else prm[[1]]=exp(logvalue[1]) # first element is the parameter of the model
-        if (estimate_measurement_error) {
+        if (measurement_error) {
           prm[[2]] = exp(logvalue[1]) # sigma2_err 
           prm[[3]] = exp(logvalue[2]) # sigma2
           prm[[4]] = logvalue[4:(4+d-1)] # beta
@@ -420,7 +420,7 @@ phylolm <- function(formula, data=list(), phy,
     logupper = upper
     
     if(model %in% c("BM","trend")){
-      if (estimate_measurement_error) {
+      if (measurement_error) {
         logstart[1:2] = log(start[1:2])
         loglower[1:2] = log(lower[1:2])
         logupper[1:2] = log(upper[1:2])
@@ -431,7 +431,7 @@ phylolm <- function(formula, data=list(), phy,
       }
     } else {
       if (model == "EB") {
-        if (estimate_measurement_error) {
+        if (measurement_error) {
           logstart[2:3] = log(start[2:3])
           loglower[2:3] = log(lower[2:3])
           logupper[2:3] = log(upper[2:3])
@@ -442,7 +442,7 @@ phylolm <- function(formula, data=list(), phy,
         }
       }
       else {
-        if (estimate_measurement_error) {
+        if (measurement_error) {
           logstart[1:3] = log(start[1:3])
           loglower[1:3] = log(lower[1:3])
           logupper[1:3] = log(upper[1:3])
@@ -480,7 +480,7 @@ phylolm <- function(formula, data=list(), phy,
     }
     
     if (model %in% c("BM","trend")){
-      if (estimate_measurement_error) {
+      if (measurement_error) {
         prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err 
         prm[["sigma2"]] = exp(opt$par[2]) # sigma2
         prm[["beta"]] = opt$par[3:(3+d-1)] # beta
@@ -491,7 +491,7 @@ phylolm <- function(formula, data=list(), phy,
     } else {
       if (model == "EB") prm[[1]] = opt$par[1] # which is 'rate', not log(rate) 
       else prm[[1]] = exp(opt$par[1]) # first element is the parameter of the model
-      if (estimate_measurement_error) {
+      if (measurement_error) {
         prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err 
         prm[["sigma2"]] = exp(opt$par[2]) # sigma2
         prm[["beta"]] = opt$par[4:(4+d-1)] # beta
@@ -502,7 +502,7 @@ phylolm <- function(formula, data=list(), phy,
     }
     
     sigma2_errorhat = 0
-    if (estimate_measurement_error)
+    if (measurement_error)
       sigma2_errorhat = prm[["sigma2_err"]] * prm[["sigma2"]]
     
     BMest = loglik(prm, y, X)
@@ -520,7 +520,7 @@ phylolm <- function(formula, data=list(), phy,
       results$p = results$p - 1
       results$aic = results$aic - 2
     }
-    if (estimate_measurement_error) {
+    if (measurement_error) {
       results$p = results$p + 1 # adjust the number of parameters
       results$aic = results$aic + 2 # adjust AIC value
     }
@@ -567,7 +567,7 @@ phylolm <- function(formula, data=list(), phy,
     booty <- results$fitted.values +
      rTrait(n = boot, phy = phy,model = simmodel, parameters=prmsimul)
      # by default: ancestral.state=0 and optimal.value=0 --used for OU model only
-    if (estimate_measurement_error){
+    if (measurement_error){
       booty <- booty + rnorm(boot*n, mean=0, sd=sqrt(results$sigma2_error))
     }
     
@@ -581,7 +581,7 @@ phylolm <- function(formula, data=list(), phy,
     colnumberalpha=ncoeff+2
     # nparam_var: number of parameters that affect the variances and covariances
     nparam_var = 1 # for sigma2
-    if (estimate_measurement_error){
+    if (measurement_error){
       nparam_var = nparam_var+1
       colnumberalpha=colnumberalpha+1
     }
@@ -591,7 +591,7 @@ phylolm <- function(formula, data=list(), phy,
     names(bootvector) <- paste0("v",1:(ncoeff + nparam_var)) # temporary names, to initialize
     names(bootvector)[1:ncoeff] <- names(results$coefficients)
     names(bootvector)[ncoeff+1] <- "sigma2"
-    if (estimate_measurement_error){
+    if (measurement_error){
       names(bootvector)[ncoeff+2] <- "sigma2_error"
     }
     if (!(model %in% c("BM","trend"))) {
@@ -615,9 +615,9 @@ phylolm <- function(formula, data=list(), phy,
             } else {
               bootvector[colnumberalpha] = as.numeric(exp(opt$par[1]));
             }
-            if(estimate_measurement_error)  MLEsigma2_error = as.numeric(exp(opt$par[2]))
+            if(measurement_error)  MLEsigma2_error = as.numeric(exp(opt$par[2]))
           } else {
-            if(estimate_measurement_error){
+            if(measurement_error){
               try(opt <- optim(logstart, fn = minus2llh_sinvar,method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...),silent = TRUE)
               if (!inherits(opt, 'try-error')){
                 MLEsigma2_error = as.numeric(exp(opt$par[1]))
@@ -627,7 +627,7 @@ phylolm <- function(formula, data=list(), phy,
         }
         if (!(model %in% c("BM","trend")))
           prm[[1]] = bootvector[colnumberalpha] # update of 'prm'
-        if (estimate_measurement_error){
+        if (measurement_error){
           if (!(model %in% c("BM","trend"))) {
             prm[[2]] = MLEsigma2_error
           } else {
@@ -638,7 +638,7 @@ phylolm <- function(formula, data=list(), phy,
         BMest = loglik(prm, y, X)
         if (model %in% OU)
           BMest$sigma2hat = 2*prm[[1]] * BMest$sigma2hat # was "gamma" originally: sigma2 = 2 alpha gamma
-        if (estimate_measurement_error) bootvector[ncoeff+2] <- MLEsigma2_error * BMest$sigma2hat
+        if (measurement_error) bootvector[ncoeff+2] <- MLEsigma2_error * BMest$sigma2hat
         bootvector[1:ncoeff] <- BMest$betahat
         bootvector[ncoeff+1] <- BMest$sigma2hat
       }
@@ -646,7 +646,7 @@ phylolm <- function(formula, data=list(), phy,
         try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...),silent=TRUE)  
         if (!inherits(opt, 'try-error')){
           if (model %in% c("BM","trend")){
-            if (estimate_measurement_error) {
+            if (measurement_error) {
               bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2])  # sigma2_err 
               bootvector[ncoeff+1] = exp(opt$par[2]) # sigma2
               bootvector[1:ncoeff] = opt$par[3:(3+d-1)] # beta
@@ -657,7 +657,7 @@ phylolm <- function(formula, data=list(), phy,
           } else {
             if (model == "EB") bootvector[colnumberalpha] = opt$par[1] # which is 'rate', not log(rate) 
             else bootvector[colnumberalpha] = exp(opt$par[1]) # first element is the parameter of the model
-            if (estimate_measurement_error) {
+            if (measurement_error) {
               bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2]) # sigma2_err 
               bootvector[ncoeff+1] = exp(opt$par[2]) # sigma2
               bootvector[1:ncoeff] = opt$par[4:(4+d-1)] # beta

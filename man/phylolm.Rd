@@ -50,7 +50,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   
   Users can input a vector of taxon-specific error (variance) through the argument \code{input_error}. The covariance matrix will be \eqn{\sigma^2*V + I_e}{sigma^2 * V + I_e} where \eqn{I_e} is the vector of error.
   
-  When \code{measurement_error = FALSE} and \code{input_error} are used together, the covariance matrix is \eqn{\sigma^2*V + \sigma^2_{error}*I + I_e}{sigma^2 * V + sigma^2_error * I + I_e}.
+  When \code{measurement_error = TRUE} and \code{input_error} are used together, the covariance matrix is \eqn{\sigma^2*V + \sigma^2_{error}*I + I_e}{sigma^2 * V + sigma^2_error * I + I_e}.
 
   By default, the bounds on the phylogenetic parameters are
   \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha},

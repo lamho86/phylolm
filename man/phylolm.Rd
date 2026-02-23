@@ -7,8 +7,8 @@
 \usage{
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
        "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "GC"),
-       lower.bound = NULL, upper.bound = NULL,
-       starting.value = NULL, measurement_error = FALSE,
+       lower.bound = NULL, upper.bound = NULL, starting.value = NULL,
+       measurement_error = FALSE, input_error = NULL,
        boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 }
 
@@ -21,7 +21,8 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
   \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
-  \item{measurement_error}{a logical value indicating whether there is measurement error \code{sigma2_error} (see Details).}
+  \item{measurement_error}{a logical value indicating whether estiamting measurement error \code{sigma2_error} is needed (see Details).}
+  \item{input_error}{optional vector of taxon-specific error (see Details).}
   \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
   \item{save}{if \code{TRUE}, the simulated bootstrap data will be returned.}
@@ -40,12 +41,16 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   model (\code{EB}), the Brownian motion model with a trend
   (\code{trend}) and the Gaussian Coalescent model (\code{GC}).
 
-  Using measurement error means that the covariance matrix is taken
+  Estimating measurement error (\code{measurement_error = TRUE}) means that the covariance matrix is taken
   to be \eqn{\sigma^2*V + \sigma^2_{error}*I}{sigma^2 * V + sigma^2_error * I}
   where \eqn{V} is the phylogenetic covariance matrix from the chosen model,
   \eqn{I} is the identity matrix, and \eqn{\sigma^2_{error}}{sigma^2_error} is the
   variance of the measurement error (which could include environmental variability,
   sampling error on the species mean, etc.).
+
+  Users can input a vector of taxon-specific error (variance) through the argument \code{input_error}. The covariance matrix will be \eqn{\sigma^2*V + I_e}{sigma^2 * V + I_e} where \eqn{I_e} is the vector of error.
+
+  When \code{measurement_error = TRUE} and \code{input_error} are used together, the covariance matrix is \eqn{\sigma^2*V + \sigma^2_{error}*I + I_e}{sigma^2 * V + sigma^2_error * I + I_e}.
 
   By default, the bounds on the phylogenetic parameters are
   \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha},

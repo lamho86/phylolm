@@ -5,13 +5,13 @@
 \description{Creates a phylogenetic tree with branch lengths and a diagonal matrix to represent a (generalized) 3-point structured covariance matrix from a trait evolution model on a known tree.}
 \usage{
 transf.branch.lengths(phy, model = c("BM", "OUrandomRoot",
-       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
+       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "GC"),
        parameters = NULL, check.pruningwise = TRUE,
        check.ultrametric=TRUE, D=NULL, check.names = TRUE)
 }
 \arguments{
   \item{phy}{a phylogenetic tree of type phylo with branch lengths.}
-  \item{model}{a phylogenetic model. Default is "BM", for Brownian motion. Alternatives are "OU", "lambda", "kappa", "delta", "EB" and "trend".}
+  \item{model}{a phylogenetic model. Default is "BM", for Brownian motion. Alternatives are "OU", "lambda", "kappa", "delta", "EB", "trend" and "GC".}
   \item{parameters}{List of parameters for the model (see Note).}
   \item{check.pruningwise}{if FALSE, the tree is assumed to be in pruningwise order.}
   \item{check.ultrametric}{if FALSE, the tree is assumed to be
@@ -27,7 +27,8 @@ transf.branch.lengths(phy, model = c("BM", "OUrandomRoot",
 Possible phylogenetic models are the Brownian motion model (BM), the
 Ornstein-Uhlenbeck model (OU), Pagel's lambda model (lambda), Pagel's
 kappa model (kappa), Pagel's delta model (delta), the early burst model
-(EB), and the Brownian motion with a trend (trend). Edge lengths are
+(EB), the Brownian motion with a trend (trend),
+and the Gaussian Coalescent model (GC). Edge lengths are
 unchanged under BM and the trend model.
 Under the kappa model, each branch length \eqn{\ell}{l} is transformed
 to \eqn{\ell^\kappa}{l^kappa}. 
@@ -52,6 +53,13 @@ Under "OUfixedRroot", \eqn{t} is transformed to
 Under the OU models, \code{diagWeight} contains \eqn{\exp(\alpha
   D_i)}{exp(alpha D_i)} for tip \eqn{i}, where \eqn{D_i} is the extra
 length added to tip \eqn{i} to make the tree ultrametric.
+Under "GC", each internal edge lengths \eqn{\ell}{l} is transformed to
+\eqn{\ell + (\lambda_{GC} - 1) (q(t_c) - q(t_p))}{l + (lambda_GC - 1) * (q(t_c) - q(t_p))},
+where \eqn{t_c} and \eqn{t_p} are the time from the root to, respectivelly,
+the child and the parent node of the edge,
+and \eqn{q(t) = 1 - \exp(-t)}{1 - exp(-t)},
+and external edge lengths are set to
+\eqn{\ell + 1 + (\lambda_{GC} - 1) (1 - q(t_c))}{l + 1 + (lambda_GC - 1) * (1 - q(t_c))}.
 }
 \value{
   \item{tree}{a rooted tree with a root edge and transformed branch lengths.}

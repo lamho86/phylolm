@@ -6,8 +6,8 @@
 \description{Fits a phylogenetic linear regression model. The likelihood is calculated with an algorithm that is linear in the number of tips in the tree.}
 \usage{
 phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
-       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend"),
-       lower.bound = NULL, upper.bound = NULL, starting.value = NULL, 
+       "OUfixedRoot", "lambda", "kappa", "delta", "EB", "trend", "GC"),
+       lower.bound = NULL, upper.bound = NULL, starting.value = NULL,
        measurement_error = FALSE, input_error = NULL,
        boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 }
@@ -38,8 +38,15 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   (\code{OUrandomRoot}), Pagel's \eqn{\lambda}{lambda} model
   (\code{lambda}), Pagel's \eqn{\kappa}{kappa} model (\code{kappa}),
   Pagel's \eqn{\delta}{delta} model (\code{delta}), the early burst
-  model (\code{EB}), and the Brownian motion model with a trend
-  (\code{trend}).
+  model (\code{EB}), the Brownian motion model with a trend
+  (\code{trend}) and the Gaussian Coalescent model (\code{GC}).
+
+  The \code{GC} (Gaussian Coalescent) model is a trait evolution model that
+  takes incomplete lineage sorting into account. It should be used
+  on a tree with branch lengths scaled in coalescent units, and with
+  individual measurements of the trait, rather than with the average of the
+  trait over several individuals within a species
+  (see the Note below for more details).
 
   Estimating measurement error (\code{measurement_error = TRUE}) means that the covariance matrix is taken
   to be \eqn{\sigma^2*V + \sigma^2_{error}*I}{sigma^2 * V + sigma^2_error * I}
@@ -47,18 +54,20 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \eqn{I} is the identity matrix, and \eqn{\sigma^2_{error}}{sigma^2_error} is the
   variance of the measurement error (which could include environmental variability,
   sampling error on the species mean, etc.).
-  
+
   Users can input a vector of taxon-specific error (variance) through the argument \code{input_error}. The covariance matrix will be \eqn{\sigma^2*V + I_e}{sigma^2 * V + I_e} where \eqn{I_e} is the vector of error.
-  
+
   When \code{measurement_error = TRUE} and \code{input_error} are used together, the covariance matrix is \eqn{\sigma^2*V + \sigma^2_{error}*I + I_e}{sigma^2 * V + sigma^2_error * I + I_e}.
 
   By default, the bounds on the phylogenetic parameters are
   \eqn{[10^{-7}/T,50/T]} for \eqn{\alpha}{alpha},
   \eqn{[10^{-7},1]} for \eqn{\lambda}{lambda},
   \eqn{[10^{-6},1]} for \eqn{\kappa}{kappa},
-  \eqn{[10^{-5},3]} for \eqn{\delta}{delta} and
-  \eqn{[-3/T,0]} for \code{rate}, where \eqn{T} is the mean root-to-tip distance.
-  \eqn{[10^{-16}, 10^{16}]} for the ratio \code{sigma2_error}/\code{sigma2} (if measurement errors is used).
+  \eqn{[10^{-5},3]} for \eqn{\delta}{delta},
+  \eqn{[-3/T,0]} for \code{rate},
+  \eqn{[10^{-16}, 10^{16}]} for \code{lambda_GC}, and
+  \eqn{[10^{-16}, 10^{16}]} for the ratio \code{sigma2_error}/\code{sigma2} (if measurement errors is used),
+  where \eqn{T} is the mean root-to-tip distance.
 
   Bootstrapping can be parallelized using the \code{future} package on any future
   compatible back-end. For example, run \code{library(future); plan(multiprocess))},
@@ -69,7 +78,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
    \item{coefficients}{the named vector of coefficients.}
    \item{sigma2}{the maximum likelihood estimate of the variance rate \eqn{\sigma^2}{sigma^2}.}
    \item{sigma2_error}{the maximum likelihood estimate of the variance of the measurement errors.}
-   \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta or rate).}
+   \item{optpar}{the optimized value of the phylogenetic correlation parameter (alpha, lambda, kappa, delta, rate or lambda_GC).}
    \item{logLik}{the maximum of the log likelihood.}
    \item{p}{the number of all parameters of the model.}
    \item{aic}{AIC value of the model.}
@@ -141,10 +150,51 @@ coefficent for this variable forms the trend value.
 Pagel's \eqn{\lambda}{lambda} model and measurement error cannot be used together:
 the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 \eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
+
+The \code{GC} (Gaussian Coalescent) models the evolution of a polygenic trait
+\code{X} with variance ratoi \code{lambda_GC}, and variance rate \code{sigma2}.
+This model assumes that:
+\itemize{
+\item{\code{X} is controlled by a large number \code{L} of loci,
+each locus \code{l} having an infinitesimally small effect \code{Yl} on the trait,
+acting additively across loci:
+\code{X = (sum_l Yl)/sqrt(L)}.
+The normalization by \code{sqrt(L)} is to simplify notations:
+the effect of locus \code{l} is \code{Yl/sqrt(L)},
+and becomes infinitesimally small as \code{L} grows to infinity.}
+\item{The tree is scaled in coalescent units.}
+\item{\code{v0} is the variance of each \code{Yl} and of \code{X} in the root population,
+and \code{lambda = v0 / sigma2}.
+Fixing \code{lambda=1} assumes that the root population is at equilibrium.}
+\item{Each \code{Yl} evolves along each own gene tree,
+arising from the population phylogeny according to the network multispecies coalescent process.
+Conditional on its gene tree, \code{Yl} evolves according to a centered process
+with increments of variance \code{sigma2 * t} over \code{t} generations,
+such as a Brownian motion process, a compound Poisson process, or a variance-gamma process.}
+\item{From the Central Limit Theorem, \code{X = (sum_l Yl)/sqrt(L)} converges
+to a Gaussian when \code{L} goes to infinity.
+The \code{GC} model assumes that the polygenic trait \code{X} is Gaussian,
+with a variance-covariance structure given by the process described above.}
+}
+The model prescribes both the covariances between species (or populations),
+and within-populations, which is why it should be used with
+individual measurements of the trait, rather than with the average of the
+trait over several individuals within a species.
+To include these individual measurements in the analysis, it is possible to create a
+modified tree with each individual sample added as a separate tip,
+and linked to the species node by a branch of length zero,
+using function \code{\link{add.individuals}}.
+The GC model can also be used in combination with
+\code{measurement_error=TRUE}, that then represents measurement error
+at the individual level (see example in \code{\link{add.individuals}}).
+The covariance structure of the \code{GC} model is then equivalent
+to the variance of a simple BM on the tree with individuals and rescaled
+branch lengths, using function \code{\link{transf.branch.lengths}}.
+
 }
 \seealso{
 \code{\link{phylostep}}, \code{\link{phyloglm}}, \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
-\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}.
+\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}, \code{\link{add.individuals}}.
 }
 
 \examples{
@@ -166,7 +216,6 @@ z <- y + rnorm(60,0,1)
 dat = data.frame(trait=z[taxa],pred=x[taxa])
 fit = phylolm(trait~pred,data=dat,phy=tre,model="BM",measurement_error=TRUE,boot=100)
 summary(fit)
-
 }
 
 

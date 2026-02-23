@@ -1,6 +1,6 @@
 phylolm <- function(formula, data=list(), phy,
-	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend"),
-	lower.bound=NULL, upper.bound=NULL, starting.value=NULL, 
+	model=c("BM","OUrandomRoot","OUfixedRoot","lambda","kappa","delta","EB","trend","GC"),
+	lower.bound=NULL, upper.bound=NULL, starting.value=NULL,
 	measurement_error = FALSE, input_error = NULL,
 	boot=0,full.matrix = TRUE, save = FALSE, REML = FALSE, ...)
 {
@@ -24,7 +24,7 @@ phylolm <- function(formula, data=list(), phy,
       input_error = input_error[ordr]
     }
   }
-  
+
   tol = 1e-10
   mf = model.frame(formula=formula,data=data)
 
@@ -52,7 +52,7 @@ phylolm <- function(formula, data=list(), phy,
       stop("data names do not match with the tip labels.\n")
     mf = mf[ordr,,drop=F]
   }
-  
+
   X = model.matrix(attr(mf, "terms"), data=mf)
   y = model.response(mf)
   d = ncol(X)
@@ -103,13 +103,21 @@ phylolm <- function(formula, data=list(), phy,
   Tmax = mean(dis)
 
   ## Default bounds
-  bounds.default = matrix(c(1e-7/Tmax,50/Tmax,1e-7,1,1e-6,1,1e-5,3,-3/Tmax,0,1e-16,1e16,1e-16,1e16, -1e16, 1e16), ncol=2, byrow=TRUE)
-  rownames(bounds.default) = c("alpha", "lambda", "kappa", "delta", "rate", "sigma2_error", "sigma2", "beta")
-  colnames(bounds.default) = c("min", "max")
+  bounds.default = matrix(c(1e-7/Tmax,50/Tmax,
+                            1e-7,1,
+                            1e-6,1,
+                            1e-5,3,
+                            -3/Tmax,0,
+                            1e-16,1e16,
+                            1e-16,1e16,
+                            1e-16,1e16,
+                            -1e16, 1e16), ncol=2, byrow=TRUE)
+  rownames(bounds.default) = c("alpha","lambda","kappa","delta","rate","lambda_GC","sigma2_error","sigma2", "beta")
+  colnames(bounds.default) = c("min","max")
 
   ## Default starting values
-  starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax,1,1,0)
-  names(starting.values.default) = c("alpha", "lambda", "kappa", "delta", "rate", "sigma2_error", "sigma2","beta")
+  starting.values.default = c(0.5/Tmax,0.5,0.5,0.5,-1/Tmax,1,1,1,0)
+  names(starting.values.default) = c("alpha","lambda","kappa","delta","rate","lambda_GC","sigma2_error","sigma2", "beta")
 
   ## Utility functions to get values
   get_value_param <- function(values, values.default, param) {
@@ -134,6 +142,7 @@ phylolm <- function(formula, data=list(), phy,
       if (model == "kappa") param <- "kappa"
       if (model == "delta") param <- "delta"
       if (model == "EB") param <- "rate"
+      if (model == "GC") param <- "lambda_GC"
       vals <- get_value_param(values, values.default, param)
     } else {
       vals <- NULL
@@ -141,7 +150,7 @@ phylolm <- function(formula, data=list(), phy,
     if (measurement_error) vals <- c(vals, get_value_param(values, values.default, "sigma2_error"))
     if (input_error_flag) {
       vals <- c(vals, get_value_param(values, values.default, "sigma2"))
-      vals <- c(vals, rep(get_value_param(values, values.default, "beta"),d)) # beta is a vector 
+      vals <- c(vals, rep(get_value_param(values, values.default, "beta"),d)) # beta is a vector
     }
     return(vals)
   }
@@ -156,6 +165,7 @@ phylolm <- function(formula, data=list(), phy,
   names(prm) = model # good for lambda, kappa, delta
   if (model %in% OU) names(prm) = "alpha"
   if (model == "EB") names(prm) = "rate"
+  if (model == "GC") names(prm) = "lambda_GC"
   if (is.null(input_error)) { # no input_error, process as normal
     if (measurement_error) {
       if (model %in% c("BM","trend")) names(prm) = "sigma2_error"
@@ -172,19 +182,19 @@ phylolm <- function(formula, data=list(), phy,
         prm[["sigma2"]] = starting.value[3]
         prm[["beta"]] = starting.value[4:(4+d-1)] # beta is a vector
       }
-    } 
+    }
     else {
       if (model %in% c("BM","trend")) {
         names(prm) = "sigma2"
-        prm[["beta"]] = starting.value[2:(2+d-1)] # beta is a vector  
-      } 
+        prm[["beta"]] = starting.value[2:(2+d-1)] # beta is a vector
+      }
       else {
         prm[["sigma2"]] = starting.value[2]
-        prm[["beta"]] = starting.value[3:(3+d-1)] # beta is a vector  
+        prm[["beta"]] = starting.value[3:(3+d-1)] # beta is a vector
       }
     }
   }
-  
+
 
   ## log-likelihood, computation using the three-point structure
   ole= 4 + 2*d + d*d # output length
@@ -214,9 +224,9 @@ phylolm <- function(formula, data=list(), phy,
                  result=double(ole))$result[4]
         sigma2hat = tmpyy/n
       }
-      
+
       vcov = sigma2hat*invXX*n/(n-d)
-      
+
       if (!REML) {
         n2llh = as.numeric( n*log(2*pi) + n + n*log(sigma2hat) + comp$logd) # -2 log-likelihood
       } else {
@@ -234,22 +244,22 @@ phylolm <- function(formula, data=list(), phy,
       tree$edge.length = tree$edge.length*parameters[["sigma2"]] # scale with the variance
       tree$edge.length[externalEdge] = tree$edge.length[externalEdge] + input_error # add input error to the external edges
       resdl = y - X%*%parameters[["beta"]]
-      
-      
-      
+
+
+
       tmp=.C("threepoint", as.integer(N),as.integer(n),as.integer(phy$Nnode),
              as.integer(1),as.integer(d),as.integer(ROOT),as.double(tree$root.edge),as.double(tree$edge.length),
              as.integer(des), as.integer(anc), as.double(as.vector(resdl)), as.double(as.vector(X)),
              result=double(ole))$result
       comp = list(yy=tmp[4], XX=matrix(tmp[(5+d):(ole-d)], d,d), logd=tmp[1])
-    
+
       invXX = solve(comp$XX) # note that edge lengths have already been scaled with sigma2
-      
+
       n2llh <- as.numeric( n*log(2*pi) + comp$yy + comp$logd)
       if (flag)
         n2llh = n2llh + parameters$alpha * 2*sum(D)
       ## because diag matrix used for generalized 3-point structure is exp(alpha diag(D))
-      
+
       return(list(n2llh=n2llh, invXX=invXX))
     }
   }
@@ -258,7 +268,7 @@ phylolm <- function(formula, data=list(), phy,
   lower = lower.bound
   upper = upper.bound
   start = starting.value
-  
+
   if (is.null(input_error)) { # no input_error, process as normal
     if ((model %in% c("BM","trend"))&&(!measurement_error)) {
       BMest = loglik(prm, y, X) # root edge taken to be 0
@@ -269,7 +279,7 @@ phylolm <- function(formula, data=list(), phy,
       # first: checks of bounds
       if (sum(lower>start)+sum(upper<start)>0 )
         stop("The starting value is not within the bounds of the parameter.")
-      
+
       # def of function to be optimized
       # minus2llh_sinvar: return the -loglik given a single variable: measure-err
       #    logvalue=log of measure-err variance
@@ -291,7 +301,7 @@ phylolm <- function(formula, data=list(), phy,
         }
         loglik(prm, y, X)$n2llh
       }
-      
+
       # get objects to start the search, and to bound the search
       if (lower[1]==upper[1] && !(measurement_error)) { # no optimization in fact
         prm[[1]] = lower[1]
@@ -362,7 +372,7 @@ phylolm <- function(formula, data=list(), phy,
         }
         # estimate beta and sigma2:
         BMest = loglik(prm, y, X)
-        
+
       }
       # rescaling measurement error by sigma2
       sigma2_errorhat = 0
@@ -384,15 +394,15 @@ phylolm <- function(formula, data=list(), phy,
       }
     } # end of cases that are not BM only
   } else { # special treatment for input_error
-    
+
     if (sum(lower>start)+sum(upper<start)>0 ) {
       stop("The starting value is not within the bounds of the parameter.")
     }
-    
+
     minus2llh=function(logvalue, y) {
       if(model %in% c("BM","trend")){
         if (measurement_error) {
-          prm[[1]] = exp(logvalue[1]) # sigma2_err 
+          prm[[1]] = exp(logvalue[1]) # sigma2_err
           prm[[2]] = exp(logvalue[2]) # sigma2
           prm[[3]] = logvalue[3:(3+d-1)] # beta
         } else {
@@ -400,10 +410,10 @@ phylolm <- function(formula, data=list(), phy,
           prm[[2]] = logvalue[2:(2+d-1)] # beta
         }
       } else {
-        if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate) 
+        if (model == "EB") prm[[1]]=logvalue[1] # which is 'rate', not log(rate)
         else prm[[1]]=exp(logvalue[1]) # first element is the parameter of the model
         if (measurement_error) {
-          prm[[2]] = exp(logvalue[1]) # sigma2_err 
+          prm[[2]] = exp(logvalue[1]) # sigma2_err
           prm[[3]] = exp(logvalue[2]) # sigma2
           prm[[4]] = logvalue[4:(4+d-1)] # beta
         } else {
@@ -411,14 +421,14 @@ phylolm <- function(formula, data=list(), phy,
           prm[[3]] = logvalue[3:(3+d-1)] # beta
         }
       }
-      
+
       loglik(prm, y, X)$n2llh
     }
-    
+
     logstart = start
     loglower = lower
     logupper = upper
-    
+
     if(model %in% c("BM","trend")){
       if (measurement_error) {
         logstart[1:2] = log(start[1:2])
@@ -453,9 +463,9 @@ phylolm <- function(formula, data=list(), phy,
         }
       }
     }
-    
+
     opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B", lower=loglower, upper = logupper, y = y, ...)
-    
+
     ## Bound
     matchbound <- NULL
     # param
@@ -478,10 +488,10 @@ phylolm <- function(formula, data=list(), phy,
                           You may change the bounds using options "upper.bound" and "lower.bound".\n'))
       }
     }
-    
+
     if (model %in% c("BM","trend")){
       if (measurement_error) {
-        prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err 
+        prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err
         prm[["sigma2"]] = exp(opt$par[2]) # sigma2
         prm[["beta"]] = opt$par[3:(3+d-1)] # beta
       } else {
@@ -489,10 +499,10 @@ phylolm <- function(formula, data=list(), phy,
         prm[["beta"]] = opt$par[2:(2+d-1)] # beta
       }
     } else {
-      if (model == "EB") prm[[1]] = opt$par[1] # which is 'rate', not log(rate) 
+      if (model == "EB") prm[[1]] = opt$par[1] # which is 'rate', not log(rate)
       else prm[[1]] = exp(opt$par[1]) # first element is the parameter of the model
       if (measurement_error) {
-        prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err 
+        prm[["sigma2_err"]] = exp(opt$par[1]) # sigma2_err
         prm[["sigma2"]] = exp(opt$par[2]) # sigma2
         prm[["beta"]] = opt$par[4:(4+d-1)] # beta
       } else {
@@ -500,21 +510,21 @@ phylolm <- function(formula, data=list(), phy,
         prm[["beta"]] = opt$par[3:(3+d-1)] # beta
       }
     }
-    
+
     sigma2_errorhat = 0
     if (measurement_error)
       sigma2_errorhat = prm[["sigma2_err"]] * prm[["sigma2"]]
-    
+
     BMest = loglik(prm, y, X)
-    
+
     if (model %in% OU)
       prm[["sigma2"]] = 2*prm[[1]] * prm[["sigma2"]]
-    
+
     # note that edge lengths have already been scaled with sigma2
     results <- list(coefficients=prm[["beta"]], sigma2=prm[["sigma2"]], optpar=prm[[1]], sigma2_error = sigma2_errorhat,
                     logLik=-BMest$n2llh/2, p=2+d, aic=2*(2+d)+BMest$n2llh, vcov = BMest$invXX*n/(n-d))
-    
-    
+
+
     if (model %in% c("BM","trend")) { # adjust for BM and trend models
       results$optpar = NULL
       results$p = results$p - 1
@@ -570,12 +580,12 @@ phylolm <- function(formula, data=list(), phy,
     if (measurement_error){
       booty <- booty + rnorm(boot*n, mean=0, sd=sqrt(results$sigma2_error))
     }
-    
+
     if (!is.null(input_error)) {
       booty <- booty + rnorm(boot*n, mean = 0, sd = sqrt(input_error))
     }
-    
-    
+
+
     # analyze these bootstrapped data
     ncoeff = length(results$coefficients)
     colnumberalpha=ncoeff+2
@@ -597,14 +607,14 @@ phylolm <- function(formula, data=list(), phy,
     if (!(model %in% c("BM","trend"))) {
       names(bootvector)[colnumberalpha] <- names(prm)[1]
     }
-    
+
     # define a function that will calculate the boot statistics. It is only dependent on `y`
     boot_model <- function(y) {
       if (is.null(input_error)) { # no input_error, process as normal
         # all other cases: first get 'prm' up-to-date.
         if (!(model %in% c("BM","trend")) && lower[1]==upper[1])
           bootvector[colnumberalpha] = lower[1] # will be used later to update 'prm'
-        
+
         # otherwise: something needs to be optimized: m.e., alpha, or both.
         # below: storing 'standardized' estimated of m.e. variance in MLEsigma2_error. Rescaled later.
         if (!(model %in% c("BM","trend")) && lower[1] != upper[1]){
@@ -634,7 +644,7 @@ phylolm <- function(formula, data=list(), phy,
             prm[[1]] = MLEsigma2_error
           }
         }
-        
+
         BMest = loglik(prm, y, X)
         if (model %in% OU)
           BMest$sigma2hat = 2*prm[[1]] * BMest$sigma2hat # was "gamma" originally: sigma2 = 2 alpha gamma
@@ -643,11 +653,11 @@ phylolm <- function(formula, data=list(), phy,
         bootvector[ncoeff+1] <- BMest$sigma2hat
       }
       else { # special treatment for input_error
-        try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...),silent=TRUE)  
+        try(opt <- optim(logstart, fn = minus2llh, method = "L-BFGS-B",lower=loglower, upper = logupper, y = y, ...),silent=TRUE)
         if (!inherits(opt, 'try-error')){
           if (model %in% c("BM","trend")){
             if (measurement_error) {
-              bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2])  # sigma2_err 
+              bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2])  # sigma2_err
               bootvector[ncoeff+1] = exp(opt$par[2]) # sigma2
               bootvector[1:ncoeff] = opt$par[3:(3+d-1)] # beta
             } else {
@@ -655,10 +665,10 @@ phylolm <- function(formula, data=list(), phy,
               bootvector[1:ncoeff] = opt$par[2:(2+d-1)] # beta
             }
           } else {
-            if (model == "EB") bootvector[colnumberalpha] = opt$par[1] # which is 'rate', not log(rate) 
+            if (model == "EB") bootvector[colnumberalpha] = opt$par[1] # which is 'rate', not log(rate)
             else bootvector[colnumberalpha] = exp(opt$par[1]) # first element is the parameter of the model
             if (measurement_error) {
-              bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2]) # sigma2_err 
+              bootvector[ncoeff+2] = exp(opt$par[1]) * exp(opt$par[2]) # sigma2_err
               bootvector[ncoeff+1] = exp(opt$par[2]) # sigma2
               bootvector[1:ncoeff] = opt$par[4:(4+d-1)] # beta
             } else {
@@ -668,10 +678,10 @@ phylolm <- function(formula, data=list(), phy,
           }
         }
       }
-      
+
       return(bootvector)
     }
-    
+
 
     bootmatrix <- future.apply::future_lapply(as.data.frame(booty), boot_model)
     bootmatrix <- do.call(rbind, bootmatrix)
@@ -746,6 +756,7 @@ print.phylolm <- function(x, digits = max(3, getOption("digits") - 3), ...){
     if (x$model %in% c("OUrandomRoot","OUfixedRoot")) cat("alpha:",x$optpar)
     if (x$model %in% c("lambda","kappa","delta")) cat(x$model,":",x$optpar)
     if (x$model=="EB") cat("rate:",x$optpar)
+    if (x$model=="GC") cat("lambda_GC:",x$optpar)
     cat("\n")
   }
   cat("sigma2:",x$sigma2,"\n")
@@ -802,6 +813,7 @@ print.summary.phylolm <- function(x, digits = max(3, getOption("digits") - 3), .
     if (x$model %in% c("OUrandomRoot","OUfixedRoot")) cat("alpha:",x$optpar)
     if (x$model %in% c("lambda","kappa","delta")) cat(x$model,":",x$optpar)
     if (x$model=="EB") cat("rate:",x$optpar)
+    if (x$model=="GC") cat("lambda_GC:",x$optpar)
     cat("\n")
   }
 
@@ -875,16 +887,16 @@ nobs.phylolm <- function(object, ...){
 ################################################
 predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, na.action = na.omit, ...){
   se = rep(NA, object$n)
-  
+
   # Standard error of prediction is computed as follows:
   # V(predictor) = Var(x*bhat) = x*V(bhat)*t(x)
   # SE(predictor) = sqrt(V(predictor))
-  
+
   if (object$model=="trend")
     stop("Predicting for trend model has not been implemented.")
   if(is.null(newdata)) {
     predictor <- fitted(object)
-    if (se.fit) 
+    if (se.fit)
       for (i in 1:object$n) se[i] = sqrt(as.numeric(t(object$X[i,]) %*% object$vcov %*% object$X[i,]))
   }
   else{
@@ -893,14 +905,14 @@ predict.phylolm <- function(object, newdata=NULL, se.fit = FALSE, na.action = na
 
     # use model.frame() to allow na.action argument:
     X = model.matrix(delete.response(terms(as.formula(formula(object)))),
-                     data = model.frame(as.formula(formula(object)), 
+                     data = model.frame(as.formula(formula(object)),
 					newdata, na.action = na.action))
-	  
+
     predictor <- X %*% coef(object)
-    if (se.fit) 
+    if (se.fit)
       for (i in 1:nrow(X)) se[i] = sqrt(as.numeric(t(X[i,]) %*% object$vcov %*% X[i,]))
   }
-  
+
   if (se.fit) list(fit = predictor, se.fit = se, df = object$n - object$d, residual.scale = sd(object$residuals))
   else predictor
 }

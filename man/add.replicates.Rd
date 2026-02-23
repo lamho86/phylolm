@@ -38,18 +38,14 @@ but not strictly equal to zero to avoid numerical instabilities.
 }
 
 \examples{
-set.seed(1289)
-## simulate species tree
-ntips <- 10
-tree <- ape::rphylo(ntips, 0.1, 0)
-plot(tree)
-## Add some replicates for each species
-reps <- sample(1:3, ntips, replace = TRUE)
-rep_ids <- make.unique(rep(tree$tip.label, times = reps), sep = "_")
-## match species to samples
-data <- data.frame(species = rep(tree$tip.label, times = reps),
-                   sample = rep_ids)
-## add replicates on the tree
-tree_rep <- add.replicates(tree, data)
+## GC model example on the wild tomato dataset
+data(tomato)
+# tree without the replicates
+plot(tomato$phy)
+# create a tree with individual measurements as tips
+tree_rep <- add.replicates(tomato$phy,tomato$data,species_id="Sp_AccessionID",sample_id="SampleID")
 plot(tree_rep)
+# fit GC model with measurement error on corolla diameter
+fit <- phylolm(CD~1,data=tomato$data,phy=tree_rep,model="GC",measurement_error=TRUE)
+summary(fit)
 }

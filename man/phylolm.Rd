@@ -138,10 +138,19 @@ coefficent for this variable forms the trend value.
 Pagel's \eqn{\lambda}{lambda} model and measurement error cannot be used together:
 the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 \eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
+
+To use the GC model with individual measurements, it is possible to create a
+modified tree with each individual sample added as a separate tip,
+and linked to the species node by a branch of length zero,
+using function \code{\link{add.replicates}}.
+Using this trick the GC model can also be used in combination with
+\code{measurement_error=TRUE}, that then represents measurement error
+at the individual level (see example in \code{\link{add.replicates}}).
+
 }
 \seealso{
 \code{\link{phylostep}}, \code{\link{phyloglm}}, \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},
-\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}.
+\code{\link[ape]{corPagel}}, \code{\link[geiger]{fitContinuous}}, \code{\link[caper]{pgls}}, \code{\link{add.replicates}}.
 }
 
 \examples{
@@ -163,7 +172,6 @@ z <- y + rnorm(60,0,1)
 dat = data.frame(trait=z[taxa],pred=x[taxa])
 fit = phylolm(trait~pred,data=dat,phy=tre,model="BM",measurement_error=TRUE,boot=100)
 summary(fit)
-
 }
 
 

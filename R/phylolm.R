@@ -567,6 +567,7 @@ print.summary.phylolm <- function(x, digits = max(3, getOption("digits") - 3), .
     if (x$model %in% c("OUrandomRoot","OUfixedRoot")) cat("alpha:",x$optpar)
     if (x$model %in% c("lambda","kappa","delta")) cat(x$model,":",x$optpar)
     if (x$model=="EB") cat("rate:",x$optpar)
+    if (x$model=="GC") cat("lambda_GC:",x$optpar)
     cat("\n")
   }
 

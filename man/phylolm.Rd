@@ -41,6 +41,13 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   model (\code{EB}), the Brownian motion model with a trend
   (\code{trend}) and the Gaussian Coalescent model (\code{GC}).
 
+  The \code{GC} (Gaussian Coalescent) model is a trait evolution model that
+  takes incomplete lineage sorting into account. It should be used
+  on a tree with branch lengths scaled in coalescent units, and with
+  individual measurements of the trait, rather than with the average of the
+  trait over several individuals within a species
+  (see the Note below for more details).
+
   Estimating measurement error (\code{measurement_error = TRUE}) means that the covariance matrix is taken
   to be \eqn{\sigma^2*V + \sigma^2_{error}*I}{sigma^2 * V + sigma^2_error * I}
   where \eqn{V} is the phylogenetic covariance matrix from the chosen model,
@@ -144,13 +151,45 @@ Pagel's \eqn{\lambda}{lambda} model and measurement error cannot be used togethe
 the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 \eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
 
-To use the GC model with individual measurements, it is possible to create a
+The \code{GC} (Gaussian Coalescent) models the evolution of a polygenic trait
+\code{X} with variance ratoi \code{lambda_GC}, and variance rate \code{sigma2}.
+This model assumes that:
+\itemize{
+\item{\code{X} is controlled by a large number \code{L} of loci,
+each locus \code{l} having an infinitesimally small effect \code{Yl} on the trait,
+acting additively across loci:
+\code{X = (sum_l Yl)/sqrt(L)}.
+The normalization by \code{sqrt(L)} is to simplify notations:
+the effect of locus \code{l} is \code{Yl/sqrt(L)},
+and becomes infinitesimally small as \code{L} grows to infinity.}
+\item{The tree is scaled in coalescent units.}
+\item{\code{v0} is the variance of each \code{Yl} and of \code{X} in the root population,
+and \code{lambda = v0 / sigma2}.
+Fixing \code{lambda=1} assumes that the root population is at equilibrium.}
+\item{Each \code{Yl} evolves along each own gene tree,
+arising from the population phylogeny according to the network multispecies coalescent process.
+Conditional on its gene tree, \code{Yl} evolves according to a centered process
+with increments of variance \code{sigma2 * t} over \code{t} generations,
+such as a Brownian motion process, a compound Poisson process, or a variance-gamma process.}
+\item{From the Central Limit Theorem, \code{X = (sum_l Yl)/sqrt(L)} converges
+to a Gaussian when \code{L} goes to infinity.
+The \code{GC} model assumes that the polygenic trait \code{X} is Gaussian,
+with a variance-covariance structure given by the process described above.}
+}
+The model prescribes both the covariances between species (or populations),
+and within-populations, which is why it should be used with
+individual measurements of the trait, rather than with the average of the
+trait over several individuals within a species.
+To include these individual measurements in the analysis, it is possible to create a
 modified tree with each individual sample added as a separate tip,
 and linked to the species node by a branch of length zero,
 using function \code{\link{add.individuals}}.
-Using this trick the GC model can also be used in combination with
+The GC model can also be used in combination with
 \code{measurement_error=TRUE}, that then represents measurement error
 at the individual level (see example in \code{\link{add.individuals}}).
+The covariance structure of the \code{GC} model is then equivalent
+to the variance of a simple BM on the tree with individuals and rescaled
+branch lengths, using function \code{\link{transf.branch.lengths}}.
 
 }
 \seealso{

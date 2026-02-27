@@ -16,7 +16,7 @@ test_that("addReplicates", {
 
   ## Replicates
   expect_warning(tree_rep <- add.individuals(tree, traits, species_id = "species", sample_id = "id"),
-                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+                 "Species 't4', 't9' are in the tree but not in the data. They will be dropped from the final tree.")
   expect_equal(length(tree_rep$tip.label), sum(reps))
   expect_equal(ape::is.ultrametric(tree_rep), TRUE)
 
@@ -36,7 +36,7 @@ test_that("addReplicates", {
   expect_error(add.individuals(tree, traits, species_id = "species", sample_id = "id"),
                "data frame should contain a column named species with species names for each sample")
   expect_warning(add.individuals(tree, traits, species_id = "labels", sample_id = "id"),
-                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+                 "Species 't4', 't9' are in the tree but not in the data. They will be dropped from the final tree.")
 
   ## Wrong names - ids
   traits <- data.frame(g1 = rnorm(sum(reps), 1, 0.5),
@@ -47,14 +47,14 @@ test_that("addReplicates", {
   expect_error(add.individuals(tree, traits, species_id = "species", sample_id = "id"),
                "data frame should contain a column named id with sample ids")
   expect_warning(add.individuals(tree, traits, species_id = "species", sample_id = "unique_ids"),
-                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+                 "Species 't4', 't9' are in the tree but not in the data. They will be dropped from the final tree.")
 
   ## from a vector
   traits$unique_ids <- make.unique(traits$species, sep = "_")
   expect_warning(tree_1 <- add.individuals(tree, traits, species_id = "species", sample_id = "unique_ids"),
-                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+                 "Species 't4', 't9' are in the tree but not in the data. They will be dropped from the final tree.")
   expect_warning(tree_2 <- add.individuals(tree, traits$species),
-                 "Species 't4', 't9' are in the tree but not in the data. They will be droped from the final tree.")
+                 "Species 't4', 't9' are in the tree but not in the data. They will be dropped from the final tree.")
   expect_true(isTRUE(all.equal(tree_1, tree_2)))
 
   ## Replicated ids

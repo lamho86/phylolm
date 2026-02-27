@@ -1,15 +1,15 @@
 \name{tomato}
 \docType{data}
 \alias{tomato}
-\title{Phylogenetic tree and trait data for 12 wild tomato populations.}
+\title{Phylogenetic tree and trait data for 12 wild tomato accessions.}
 \format{
 A list containing two objects:
 \describe{
-  \item{phy}{The phylogenetic tree for the 12 wild tomato populations, pruned to match
+  \item{phy}{The phylogenetic tree for the 12 wild tomato accessions (populations), pruned to match
   the species in the trait dataset}
   \item{data}{A data frame containing individual measurements for floral trait, with columns:
   \describe{
-  \item{Sp_AccessionID}{Species name and accession ID of the population.}
+  \item{Sp_AccessionID}{Species name and accession ID.}
   \item{SampleID}{Individual ID for each sample.}
   \item{CD}{Corolla diameter (mm).}
   \item{AL}{Anther length (mm).}

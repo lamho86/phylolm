@@ -53,11 +53,11 @@ Under "OUfixedRroot", \eqn{t} is transformed to
 Under the OU models, \code{diagWeight} contains \eqn{\exp(\alpha
   D_i)}{exp(alpha D_i)} for tip \eqn{i}, where \eqn{D_i} is the extra
 length added to tip \eqn{i} to make the tree ultrametric.
-Under "GC", each internal edge lengths \eqn{\ell}{l} is transformed to
+Under "GC", each internal edge length \eqn{\ell}{l} is transformed to
 \eqn{\ell + (\lambda_{GC} - 1) (q(t_c) - q(t_p))}{l + (lambda_GC - 1) * (q(t_c) - q(t_p))},
-where \eqn{t_c} and \eqn{t_p} are the time from the root to, respectivelly,
+where \eqn{t_c} and \eqn{t_p} are the time from the root to, respectively,
 the child and the parent node of the edge,
-and \eqn{q(t) = 1 - \exp(-t)}{1 - exp(-t)},
+and \eqn{q(t) = 1 - \exp(-t)}{1 - exp(-t)};
 and external edge lengths are set to
 \eqn{\ell + 1 + (\lambda_{GC} - 1) (1 - q(t_c))}{l + 1 + (lambda_GC - 1) * (1 - q(t_c))}.
 }
@@ -74,8 +74,10 @@ and external edge lengths are set to
 \note{
 The default choice for the parameters are as follows: \code{alpha=0} for
 the selection strength in the OU model, \code{lambda=1}, \code{kappa=1},
-\code{delta=1}, \code{rate=0} for the EB model, \code{sigma2_error=0} for the variance of measurement errors. These default choices
-correspond to the BM model.
+\code{delta=1}, and \code{rate=0} for the EB model
+(these default choices correspond to the BM model);
+\code{lambda_GC=1} for the GC model,
+\code{sigma2_error=0} for the variance of measurement errors.
 
 Edges in the output tree are in pruningwise order.
 

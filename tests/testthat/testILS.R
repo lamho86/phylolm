@@ -3,15 +3,16 @@ test_that("GC fit", {
   #'
   #' @description
   #' Computes the un-scaled variance matrix of a trait evolving as a BM with ILS on
-  #' a phylogenetic tree.
+  #' a phylogenetic tree, whose branch lengths are in coalescent units.
   #' The ancestral population is assumed to have a given distribution
   #' with mean `m_0` and variance `sig2_0`.
-  #' If $N$ is the population size, for a BM process with variance `2*N*sig2_BM`,
+  #' If $2N$ is the haploid population size, for a BM process with variance
+  #' `2N*sig2_BM` per coalescent unit (i.e. `sig2_BM` per generation),
   #' the variance matrix of the trait at the tips of the tree is given by
-  #' `2*N*sig2_BM * vcv_ils(tree, lambda)`, where
-  #' `lambda = sig2_0 / (2*N*sig2_BM)`.
+  #' `2N*sig2_BM * vcv_ils(tree, lambda)`, where
+  #' `lambda = sig2_0 / (2N*sig2_BM)`.
   #' Take `lambda=0` for a fixed ancestral population distribution (`sig2_0=0`),
-  #' and `lambda=1` for an ancestral distribution at equilibrium (`sig2_0=2*N*sig2_BM`).
+  #' and `lambda=1` for an ancestral distribution at equilibrium (`sig2_0=2N*sig2_BM`).
   #'
   #' @param tree a phylogenetic tree of class ape::phylo.
   #' Branch lengths must be in coalescent units.
@@ -31,22 +32,25 @@ test_that("GC fit", {
   #' @title Coalescence probability (q)
   #'
   #' @description
-  #' Probability that two individual coalesce after a time `t` in coalescent unit.
+  #' Probability `1 - exp(-t)` that two individuals coalesce after a time `t` in coalescent unit.
   #'
   #' @param t time in coalescent unit
   #'
   #' @return probability of coalescence
   #'
   proba_coal <- function(t) {
-    return(1 - exp(-t))
+    # `-expm1(-t)` is an alternative to `1 - exp(-t)` for more numerical stability with tiny edge lengths
+    # and for r(t) below, which needs proba_coal(t) / t
+    return(-expm1(-t))
   }
 
-  #' @title Expected shared time (r)
+  #' @title Expected shared time ratio (r)
   #'
   #' @description
-  #' Two individuals from a population of size $N$ share a common ancestor
+  #' Two individuals from a haploid population of size $2N$ share a common ancestor
   #' for an average of `l*shared_time_ratio(l/(2*N))` generations within the last `l`
-  #' generations.
+  #' generations. This is also `(2N) t*shared_time_ratio(t)` if the edge length is
+  #' given in coalescent units `t=l/(2N)`.
   #'
   #' @param t time in coalescent unit
   #'

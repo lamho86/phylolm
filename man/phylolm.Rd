@@ -21,7 +21,7 @@ phylolm(formula, data = list(), phy, model = c("BM", "OUrandomRoot",
   \item{lower.bound}{optional lower bound for the optimization of the phylogenetic model parameter.}
   \item{upper.bound}{optional upper bound for the optimization of the phylogenetic model parameter.}
   \item{starting.value}{optional starting value for the optimization of the phylogenetic model parameter.}
-  \item{measurement_error}{a logical value indicating whether estiamting measurement error \code{sigma2_error} is needed (see Details).}
+  \item{measurement_error}{a logical value indicating whether estimating measurement error \code{sigma2_error} is needed (see Details).}
   \item{input_error}{optional vector of taxon-specific error (see Details).}
   \item{boot}{number of independent bootstrap replicates, 0 means no bootstrap.}
   \item{full.matrix}{if \code{TRUE}, the full matrix of bootstrap estimates (coefficients and covariance parameters) will be returned.}
@@ -152,7 +152,8 @@ the parameters \eqn{\lambda}{lambda}, \eqn{\sigma^2}{sigma^2} and
 \eqn{\sigma^2_{error}}{sigma^2_error} are not distinguishable (identifiable) from each other.
 
 The \code{GC} (Gaussian Coalescent) models the evolution of a polygenic trait
-\code{X} with variance ratoi \code{lambda_GC}, and variance rate \code{sigma2}.
+\code{X} with variance ratio \code{lambda_GC} at the root
+and variance rate \code{sigma2} (per coalescent unit).
 This model assumes that:
 \itemize{
 \item{\code{X} is controlled by a large number \code{L} of loci,
@@ -166,10 +167,10 @@ and becomes infinitesimally small as \code{L} grows to infinity.}
 \item{\code{v0} is the variance of each \code{Yl} and of \code{X} in the root population,
 and \code{lambda = v0 / sigma2}.
 Fixing \code{lambda=1} assumes that the root population is at equilibrium.}
-\item{Each \code{Yl} evolves along each own gene tree,
+\item{Each \code{Yl} evolves along its own gene tree,
 arising from the population phylogeny according to the network multispecies coalescent process.
 Conditional on its gene tree, \code{Yl} evolves according to a centered process
-with increments of variance \code{sigma2 * t} over \code{t} generations,
+with increments of variance \code{sigma2 * t} over \code{t} coalescent units,
 such as a Brownian motion process, a compound Poisson process, or a variance-gamma process.}
 \item{From the Central Limit Theorem, \code{X = (sum_l Yl)/sqrt(L)} converges
 to a Gaussian when \code{L} goes to infinity.
@@ -185,12 +186,12 @@ modified tree with each individual sample added as a separate tip,
 and linked to the species node by a branch of length zero,
 using function \code{\link{add.individuals}}.
 The GC model can also be used in combination with
-\code{measurement_error=TRUE}, that then represents measurement error
-at the individual level (see example in \code{\link{add.individuals}}).
+\code{measurement_error=TRUE}, that then represents non-heritable variation
+at the individual level, such as environmental variation or measurement error
+(see example in \code{\link{add.individuals}}).
 The covariance structure of the \code{GC} model is then equivalent
-to the variance of a simple BM on the tree with individuals and rescaled
+to the variance of a simple BM on the tree with individuals as tips and rescaled
 branch lengths, using function \code{\link{transf.branch.lengths}}.
-
 }
 \seealso{
 \code{\link{phylostep}}, \code{\link{phyloglm}}, \code{\link[ape]{corBrownian}}, \code{\link[ape]{corMartins}},

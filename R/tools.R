@@ -179,10 +179,29 @@ transf.branch.lengths <-
   ## GC model
   if (model=="GC") {
     lambda_GC <- p$lambda_GC
-    coal_proba <- function(t) return(1 - exp(-t))
+    coal_proba <- function(t) return(- expm1(-t))
+    # 'expm1' very accurate if |t|<<1: to avoid numerical errors with tiny edge lengths
     distFromRoot <- pruningwise.distFromRoot(phy)
-    edge.length <- phy$edge.length + (lambda_GC - 1) * (coal_proba(distFromRoot[des]) - coal_proba(distFromRoot[anc])) # note: this is zero for a zero length branch
-    edge.length[externalEdge] <- edge.length[externalEdge] + 1 + (lambda_GC - 1) * (1 - coal_proba(distFromRoot[des[externalEdge]]))
+    # edge.length <- phy$edge.length + (lambda_GC - 1) * (coal_proba(distFromRoot[des]) - coal_proba(distFromRoot[anc])) # note: this is zero for a zero length branch
+    # more accurate if t_c, t_p, or t_c-t_p is small (e.g. external edges):
+    edge.length <- phy$edge.length + (lambda_GC - 1) * coal_proba(phy$edge.length) * exp(-distFromRoot[anc])             # F1
+    edge.length[externalEdge] <- edge.length[externalEdge] + 1 + (lambda_GC - 1) * exp(-distFromRoot[des[externalEdge]]) # F2
+    # There are two cases:
+    # 1. if there are several individuals in the population, we assume that they
+    #    are linked to the "species tip node" by a branch of length zero
+    #    (see `add.individuals` function).
+    #    Then we recover the formulas from the paper:
+    #    - F1 updates internal branches, and does nothing for external branches of length zero,
+    #    - F2 updates external branches, with edge.length[externalEdge] = 0
+    # 2. if there is only one individual in the population, formally the tree
+    #    has a degree one node between the population node and the individual tip.
+    #    Then:
+    #    - F1 updates the "internal" branch of non zero length that leads to
+    #      the (fictitious) degree one population node,
+    #    - F2 updates the "external" branch to its value with
+    #      `1 + (lambda_GC - 1) * exp(-distFromRoot[des[externalEdge]])`,
+    #      and "deletes" the (fictitious) degree one population node by merging
+    #      the two branches together with `edge.length[externalEdge] +`
   }
 
   edge.length[externalEdge] = edge.length[externalEdge] + errEdge # add measurement errors to the tree
@@ -288,13 +307,13 @@ add.individuals <- function(phy, data, species_id = "species", sample_id = "samp
     data[[sample_id]] <- make.unique(data[[species_id]], sep = "_")
   }
   if (is.null(data[[sample_id]])) {
-    stop("The `data` data frame should contain a column named ", sample_id, " with sample ids. Plead adjust argument `sample_id` accordingly.")
+    stop("The `data` data frame should contain a column named ", sample_id, " with sample ids. Please adjust argument `sample_id` accordingly.")
   }
   if (length(data[[sample_id]]) != length(unique(data[[sample_id]]))){
     stop("The sample ids in column named ", sample_id, " should be unique identifiers of the samples.")
   }
   if (is.null(data[[species_id]])) {
-    stop("The `data` data frame should contain a column named ", species_id, " with species names for each sample. Plead adjust argument `species_id` accordingly.")
+    stop("The `data` data frame should contain a column named ", species_id, " with species names for each sample. Please adjust argument `species_id` accordingly.")
   }
   data_tree_cor <- match(data[[species_id]], phy$tip.label)
   if (anyNA(data_tree_cor)) {
@@ -304,7 +323,7 @@ add.individuals <- function(phy, data, species_id = "species", sample_id = "samp
   tree_data_cor <- match(phy$tip.label, data[[species_id]])
   if (anyNA(tree_data_cor)) {
     # Species in tree NOT in the data
-    warning("Species '", paste(unique(phy$tip.label[is.na(tree_data_cor)]), collapse = "', '"), "' are in the tree but not in the data. They will be droped from the final tree." )
+    warning("Species '", paste(unique(phy$tip.label[is.na(tree_data_cor)]), collapse = "', '"), "' are in the tree but not in the data. They will be dropped from the final tree." )
   }
   ## Make tree
   tree_rep <- phy
